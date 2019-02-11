@@ -1,4 +1,4 @@
-package blc
+package main
 
 import (
 	"crypto/sha256"
