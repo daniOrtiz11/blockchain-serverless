@@ -6,16 +6,25 @@ import (
 	"io"
 	"log"
 	"net"
-	"os"
 	"strconv"
 	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/joho/godotenv"
 )
 
-// Block represents each 'item' in the blockchain
+/*
+godotoenv-> get params from configuration files
+spew -> print go structures
+bufio -> buffer to read data
+io -> handle out console
+net -> network interface (TCP currently)
+os -> read from file
+strconv -> string conversion
+sync -> dependencie to use mutex
+*/
+
+// Custom Block
 type Block struct {
 	Index         int
 	Timestamp     string
@@ -24,18 +33,21 @@ type Block struct {
 	PrevHash      string
 }
 
-// Blockchain is a series of validated Blocks
+// Array Blocks -> real Blockchain
 var Blockchain []Block
 
-// bcServer handles incoming concurrent Blocks
+//channel for handle current access to Blockchain
 var bcServer chan []Block
+
+//mutex needed in sumalted broadcasting
 var mutex = &sync.Mutex{}
 
 func main() {
-	err := godotenv.Load("configuration.env")
+	//check access configuration file
+	/*err := godotenv.Load("configuration.env")
 	if err != nil {
 		log.Fatal(err)
-	}
+	}*/
 
 	bcServer = make(chan []Block)
 
@@ -45,9 +57,10 @@ func main() {
 	spew.Dump(genesisBlock)
 	Blockchain = append(Blockchain, genesisBlock)
 
-	httpPort := os.Getenv("PORT")
+	//get port from constant file
+	httpPort := PORT
 
-	// start TCP and serve TCP server
+	// start TCP server
 	server, err := net.Listen("tcp", ":"+httpPort)
 	if err != nil {
 		log.Fatal(err)
@@ -55,6 +68,7 @@ func main() {
 	log.Println("HTTP Server Listening on port :", httpPort)
 	defer server.Close()
 
+	//Infinite loop to accetp and handle cons
 	for {
 		conn, err := server.Accept()
 		if err != nil {
