@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -33,11 +31,11 @@ import (
 
 // Block represents each 'item' in the blockchain
 type Block struct {
-	Index     int
-	Timestamp string
-	BPM       int
-	Hash      string
-	PrevHash  string
+	Index       int
+	Timestamp   string
+	CustomValue int
+	Hash        string
+	PrevHash    string
 }
 
 // Blockchain is a series of validated Blocks
@@ -101,7 +99,9 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 			break
 		}
 	}
-	findaddr = false
+	/*
+		Handle clase if there are any problem get addr:
+	*/
 	if findaddr == false {
 		log.Printf("In if")
 		addrcero := basicHost.Addrs()[0]
@@ -115,11 +115,13 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		addrstr := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)
 		realaddress := addrstr + "/ipfs/" + nextkey
 		log.Printf("I am %s\n", fullAddrcero)
-		log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		//log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
 	} else {
 		fullAddr := addr.Encapsulate(hostAddr)
 		log.Printf("I am %s\n", fullAddr)
-		log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
+		//log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
+		log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
 
 	}
 
@@ -204,11 +206,11 @@ func writeData(rw *bufio.ReadWriter) {
 		}
 
 		sendData = strings.Replace(sendData, "\n", "", -1)
-		bpm, err := strconv.Atoi(sendData)
+		customvalue, err := strconv.Atoi(sendData)
 		if err != nil {
 			log.Fatal(err)
 		}
-		newBlock := generateBlock(Blockchain[len(Blockchain)-1], bpm)
+		newBlock := generateBlock(Blockchain[len(Blockchain)-1], customvalue)
 
 		if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
 			mutex.Lock()
@@ -315,46 +317,4 @@ func main() {
 		select {} // hang forever
 
 	}
-}
-
-// make sure block is valid by checking index, and comparing the hash of the previous block
-func isBlockValid(newBlock, oldBlock Block) bool {
-	if oldBlock.Index+1 != newBlock.Index {
-		return false
-	}
-
-	if oldBlock.Hash != newBlock.PrevHash {
-		return false
-	}
-
-	if calculateHash(newBlock) != newBlock.Hash {
-		return false
-	}
-
-	return true
-}
-
-// SHA256 hashing
-func calculateHash(block Block) string {
-	record := strconv.Itoa(block.Index) + block.Timestamp + strconv.Itoa(block.BPM) + block.PrevHash
-	h := sha256.New()
-	h.Write([]byte(record))
-	hashed := h.Sum(nil)
-	return hex.EncodeToString(hashed)
-}
-
-// create a new block using previous block's hash
-func generateBlock(oldBlock Block, BPM int) Block {
-
-	var newBlock Block
-
-	t := time.Now()
-
-	newBlock.Index = oldBlock.Index + 1
-	newBlock.Timestamp = t.String()
-	newBlock.BPM = BPM
-	newBlock.PrevHash = oldBlock.Hash
-	newBlock.Hash = calculateHash(newBlock)
-
-	return newBlock
 }
