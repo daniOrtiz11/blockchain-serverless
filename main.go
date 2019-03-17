@@ -95,8 +95,9 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 	for _, i := range addrs {
 		if strings.HasPrefix(i.String(), "/ip4") {
 			addr = i
+			log.Printf("I am in for %s\n", i)
 			findaddr = true
-			break
+			//break
 		}
 	}
 	/*
@@ -116,12 +117,14 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		realaddress := addrstr + "/ipfs/" + nextkey
 		log.Printf("I am %s\n", fullAddrcero)
 		//log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
-		log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		//log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		log.Printf("Now run \"go run main.go bcfunctions.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
 	} else {
 		fullAddr := addr.Encapsulate(hostAddr)
 		log.Printf("I am %s\n", fullAddr)
 		//log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
-		log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
+		log.Printf("Now run \"go run main.go bcfunctions.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
+		//log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
 
 	}
 
@@ -142,33 +145,26 @@ func handleStream(s net.Stream) {
 }
 
 func readData(rw *bufio.ReadWriter) {
-
 	for {
 		str, err := rw.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if str == "" {
+		if err != nil || str == "" {
+			log.Printf("client lost")
 			return
-		}
-		if str != "\n" {
-
+		} else if str != "\n" {
 			chain := make([]Block, 0)
 			if err := json.Unmarshal([]byte(str), &chain); err != nil {
+				log.Printf("Exception json.Unmarshal: ")
 				log.Fatal(err)
 			}
-
 			mutex.Lock()
 			if len(chain) > len(Blockchain) {
 				Blockchain = chain
 				bytes, err := json.MarshalIndent(Blockchain, "", "  ")
 				if err != nil {
-
+					log.Printf("Exception json.MarshalIndent: ")
 					log.Fatal(err)
 				}
-				// Green console color: 	\x1b[32m
-				// Reset console color: 	\x1b[0m
+				//updateGlobal(bytes)
 				fmt.Printf("\x1b[32m%s\x1b[0m> ", string(bytes))
 			}
 			mutex.Unlock()
@@ -184,10 +180,10 @@ func writeData(rw *bufio.ReadWriter) {
 			mutex.Lock()
 			bytes, err := json.Marshal(Blockchain)
 			if err != nil {
+				log.Printf("Exception json.Marshal: ")
 				log.Println(err)
 			}
 			mutex.Unlock()
-
 			mutex.Lock()
 			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
 			rw.Flush()
@@ -202,33 +198,35 @@ func writeData(rw *bufio.ReadWriter) {
 		fmt.Print("> ")
 		sendData, err := stdReader.ReadString('\n')
 		if err != nil {
+
+			log.Printf("Exception stdReader:")
 			log.Fatal(err)
 		}
 
 		sendData = strings.Replace(sendData, "\n", "", -1)
 		customvalue, err := strconv.Atoi(sendData)
-		if err != nil {
-			log.Fatal(err)
-		}
-		newBlock := generateBlock(Blockchain[len(Blockchain)-1], customvalue)
+		if err == nil {
+			newBlock := generateBlock(Blockchain[len(Blockchain)-1], customvalue)
 
-		if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+			if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+				mutex.Lock()
+				Blockchain = append(Blockchain, newBlock)
+				mutex.Unlock()
+			}
+
+			bytes, err := json.Marshal(Blockchain)
+			if err != nil {
+				log.Println(err)
+			}
+
+			spew.Dump(Blockchain)
+
 			mutex.Lock()
-			Blockchain = append(Blockchain, newBlock)
+			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
+			rw.Flush()
 			mutex.Unlock()
 		}
 
-		bytes, err := json.Marshal(Blockchain)
-		if err != nil {
-			log.Println(err)
-		}
-
-		spew.Dump(Blockchain)
-
-		mutex.Lock()
-		rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-		rw.Flush()
-		mutex.Unlock()
 	}
 
 }
@@ -240,10 +238,8 @@ func main() {
 
 	Blockchain = append(Blockchain, genesisBlock)
 
-	// LibP2P code uses golog to log messages. They log with different
-	// string IDs (i.e. "swarm"). We can control the verbosity level for
-	// all loggers with:
 	golog.SetAllLoggers(gologging.INFO) // Change to DEBUG for extra info
+	//golog.SetAllLoggers(gologging.DEBUG) // Change to DEBUG for extra info
 
 	// Parse options from the command line
 	listenF := flag.Int("l", 0, "wait for incoming connections")
@@ -262,11 +258,11 @@ func main() {
 	}
 
 	if *target == "" {
+		log.Println("Initial node")
 		log.Println("listening for connections")
 		// Set a stream handler on host A. /p2p/1.0.0 is
 		// a user-defined protocol name.
 		ha.SetStreamHandler("/p2p/1.0.0", handleStream)
-
 		select {} // hang forever
 		/**** This is where the listener code ends ****/
 	} else {
@@ -317,4 +313,37 @@ func main() {
 		select {} // hang forever
 
 	}
+}
+
+func updateGlobal(bytes []byte) {
+	//bytestofile(bytes)
+	//uploadfile()
+}
+
+/*
+TODO
+*/
+func showHelp(bytes []byte) {
+
+}
+
+/*
+TODO
+*/
+func viewState() {
+
+}
+
+/*
+TODO
+*/
+func closeCon() {
+
+}
+
+/*
+TODO
+*/
+func insertFunc() {
+
 }
