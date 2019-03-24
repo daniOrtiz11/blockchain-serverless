@@ -72,6 +72,10 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 	*/
 
 	addrstr := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)
+	//addrstr := fmt.Sprintf("/ip4/192.168.1.135/tcp/%d", listenPort)
+	//addrstr := fmt.Sprintf("/ip4/81.0.3.81/tcp/%d", listenPort)
+	//addrstr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", listenPort)
+	//addrstr := fmt.Sprintf("/ip4/3.17.190.106/tcp/%d", listenPort)
 
 	opts := []libp2p.Option{
 		libp2p.ListenAddrStrings(addrstr),
@@ -116,16 +120,19 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		addrstr := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)
 		realaddress := addrstr + "/ipfs/" + nextkey
 		log.Printf("I am %s\n", fullAddrcero)
-		//log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
-		//log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
-		log.Printf("Now run \"go run main.go bcfunctions.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		if debug {
+			log.Printf("Now run \"go run main.go bcfunctions.go constants.go aws.go utils.go -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		} else {
+			log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, realaddress)
+		}
 	} else {
 		fullAddr := addr.Encapsulate(hostAddr)
 		log.Printf("I am %s\n", fullAddr)
-		//log.Printf("Now run \"go run main.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
-		log.Printf("Now run \"go run main.go bcfunctions.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
-		//log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
-
+		if debug {
+			log.Printf("Now run \"go run main.go bcfunctions.go constants.go aws.go utils.go -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
+		} else {
+			log.Printf("Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n", listenPort+1, fullAddr)
+		}
 	}
 
 	return basicHost, nil
@@ -164,7 +171,10 @@ func readData(rw *bufio.ReadWriter) {
 					log.Printf("Exception json.MarshalIndent: ")
 					log.Fatal(err)
 				}
-				//updateGlobal(bytes)
+				if !debug {
+					updateGlobal(bytes)
+				}
+
 				fmt.Printf("\x1b[32m%s\x1b[0m> ", string(bytes))
 			}
 			mutex.Unlock()
@@ -195,38 +205,34 @@ func writeData(rw *bufio.ReadWriter) {
 	stdReader := bufio.NewReader(os.Stdin)
 
 	for {
-		fmt.Print("> ")
-		sendData, err := stdReader.ReadString('\n')
-		if err != nil {
-
-			log.Printf("Exception stdReader:")
-			log.Fatal(err)
-		}
-
-		sendData = strings.Replace(sendData, "\n", "", -1)
-		customvalue, err := strconv.Atoi(sendData)
-		if err == nil {
-			newBlock := generateBlock(Blockchain[len(Blockchain)-1], customvalue)
-
-			if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
-				mutex.Lock()
-				Blockchain = append(Blockchain, newBlock)
-				mutex.Unlock()
-			}
-
-			bytes, err := json.Marshal(Blockchain)
+		inOk := false
+		for inOk == false {
+			showHelp()
+			sendData, err := stdReader.ReadString('\n')
 			if err != nil {
-				log.Println(err)
+				log.Printf("Exception stdReader:")
+				log.Fatal(err)
 			}
-
-			spew.Dump(Blockchain)
-
-			mutex.Lock()
-			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-			rw.Flush()
-			mutex.Unlock()
+			sendData = strings.Replace(sendData, "\n", "", -1)
+			option, err := strconv.Atoi(sendData)
+			if err == nil {
+				switch option {
+				case 1:
+					viewState(rw)
+					inOk = true
+				case 2:
+					insertBlock()
+					inOk = true
+				case 3:
+					closeCon()
+					inOk = true
+				default:
+					fmt.Println("Error: Please provide a option")
+				}
+			} else {
+				fmt.Println("Error: Please provide a number")
+			}
 		}
-
 	}
 
 }
@@ -245,10 +251,19 @@ func main() {
 	listenF := flag.Int("l", 0, "wait for incoming connections")
 	target := flag.String("d", "", "target peer to dial")
 	seed := flag.Int64("seed", 0, "set random seed for id generation")
+	mode := flag.String("mode", "", "mode debug")
 	flag.Parse()
 
 	if *listenF == 0 {
 		log.Fatal("Please provide a port to bind on with -l")
+	}
+
+	if *mode == "debug" {
+		debug = true
+	} else if *mode == "" {
+		debug = false
+	} else {
+		log.Fatal("Please provide a correct mode with -mode")
 	}
 
 	// Make a host that listens on the given multiaddress
@@ -316,34 +331,53 @@ func main() {
 }
 
 func updateGlobal(bytes []byte) {
-	//bytestofile(bytes)
-	//uploadfile()
+	bytestofile(bytes)
+	uploadfile()
 }
 
-/*
-TODO
-*/
-func showHelp(bytes []byte) {
-
+func showHelp() {
+	fmt.Println("Options:")
+	fmt.Println("1. View State")
+	fmt.Println("2. Insert new value")
+	fmt.Println("3. Close connection")
+	fmt.Print("> ")
 }
 
-/*
-TODO
-*/
-func viewState() {
-
+func viewState(rw *bufio.ReadWriter) {
+	fmt.Println("Current Blockchain state:")
+	bytes, err := json.Marshal(Blockchain)
+	if err != nil {
+		log.Println(err)
+	}
+	spew.Dump(Blockchain)
+	mutex.Lock()
+	rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
+	rw.Flush()
+	mutex.Unlock()
 }
 
-/*
-TODO
-*/
 func closeCon() {
-
+	fmt.Println("Here in option 3")
 }
 
-/*
-TODO
-*/
-func insertFunc() {
+func insertBlock() {
+	fmt.Println("Insert a new value:")
+	fmt.Print("> ")
+	stdReader := bufio.NewReader(os.Stdin)
+	sendData, err := stdReader.ReadString('\n')
+	if err != nil {
+		log.Printf("Exception stdReader:")
+		log.Fatal(err)
+	}
+	sendData = strings.Replace(sendData, "\n", "", -1)
+	customvalue, err := strconv.Atoi(sendData)
+	if err == nil {
+		newBlock := generateBlock(Blockchain[len(Blockchain)-1], customvalue)
 
+		if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+			mutex.Lock()
+			Blockchain = append(Blockchain, newBlock)
+			mutex.Unlock()
+		}
+	}
 }

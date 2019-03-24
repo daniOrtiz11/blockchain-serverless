@@ -11,3 +11,6 @@ const regionaws string = "XXXX"
 
 //TEMP FILE CONSTANTS:
 const localfile string = "XXXX"
+
+//ENV
+var debug bool = xxxx
