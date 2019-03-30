@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"log"
 	"time"
 )
 
@@ -46,4 +48,36 @@ func generateBlock(oldBlock Block, CustomValue int) Block {
 	newBlock.Hash = calculateHash(newBlock)
 
 	return newBlock
+}
+
+func updateBlc(chain []Block, Blockchain []Block) []Block {
+	if len(chain) > len(Blockchain) {
+		Blockchain = chain
+		//fmt.Printf(greenColorCMD, string(bytes))
+	}
+	return Blockchain
+}
+
+func updateGlobal(bytes []byte) {
+	bytestofile(bytes)
+	uploadfile()
+}
+
+func insertBlc(customvalue int, Blockchain []Block) []Block {
+	newBlock := generateBlock(Blockchain[len(Blockchain)-1], customvalue)
+	if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
+		mutex.Lock()
+		Blockchain = append(Blockchain, newBlock)
+		bytes, err := json.MarshalIndent(Blockchain, "", "  ")
+		if err != nil {
+			log.Printf(exceptionJSON)
+			log.Fatal(err)
+		}
+		if !debug {
+			updateGlobal(bytes)
+		}
+		mutex.Unlock()
+	}
+
+	return Blockchain
 }
