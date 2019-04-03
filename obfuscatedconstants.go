@@ -1,5 +1,6 @@
 package main
 
+/*
 //BLC CONSTANTS:
 
 //AWS CONSTANTS:
@@ -8,6 +9,7 @@ const bucketfile string = "XXXX"
 const idiam string = "XXXX"
 const secretiam string = "XXXX"
 const regionaws string = "XXXX"
+const arnFunGetaws string = "XXXX"
 
 //TEMP FILE CONSTANTS:
 const localfile string = "XXXX"
@@ -50,3 +52,5 @@ const options2Title = "Insert a new value:"
 const options3 = "3. Show command to run"
 const options4 = "4. Close connection"
 const endMessage = "Closing connection, bye!"
+
+*/
