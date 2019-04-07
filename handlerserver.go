@@ -101,6 +101,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		}
 		addrstr := fmt.Sprintf(iplocalhost, listenPort)
 		realaddress := addrstr + ipfs2 + nextkey
+		parserLocalP2P(realaddress)
 		if debug {
 			cmdConsole = fmt.Sprintf(debugcmd, listSources, listenPort+1, realaddress)
 		} else {
@@ -108,6 +109,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		}
 	} else {
 		fullAddr := addr.Encapsulate(hostAddr)
+		parserLocalP2P(fullAddr.String())
 		if debug {
 			cmdConsole = fmt.Sprintf(debugcmd, listSources, listenPort+1, fullAddr)
 		} else {
@@ -116,4 +118,43 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 	}
 
 	return basicHost, nil
+}
+
+func getTargetP2P() string {
+	target := generalLambda(arnFuncGetP2P, "")
+	targetParser := ""
+	if target != "" {
+		targetParser = parserTarget(target)
+	}
+	//ip:port:key
+	//parser target, port and key
+	// /ip4/127.0.0.1/tcp/10000/ipfs/xxxxxx
+	return targetParser
+}
+
+func setTargetP2P(clientP2P string) {
+	//ip:port:key
+	clientP2P = localP2P.Ipdir + ":" + localP2P.Port + ":" + localP2P.Key
+	generalLambda(arnFuncSetP2P, clientP2P)
+	//ok or ko
+}
+
+func deleteTargetP2P(clientP2P string) {
+	//ip:port:key
+	clientP2P = localP2P.Ipdir + ":" + localP2P.Port + ":" + localP2P.Key
+	generalLambda(arnFuncDeleteP2P, clientP2P)
+	//ok or ko
+}
+
+func parserLocalP2P(fullstr string) {
+	splitFull := strings.Split(fullstr, "/")
+	localP2P.Ipdir = splitFull[2]
+	localP2P.Port = splitFull[4]
+	localP2P.Port = splitFull[6]
+}
+
+func parserTarget(target string) string {
+	splitFull := strings.Split(target, ":")
+	localTarget := "/ip4/" + splitFull[0] + "/tcp/" + splitFull[1] + "/ipfs" + splitFull[2]
+	return localTarget
 }

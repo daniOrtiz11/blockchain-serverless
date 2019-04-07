@@ -32,10 +32,19 @@ type Block struct {
 	PrevHash    string
 }
 
+//LocalP2P host ip, port and key
+type LocalP2P struct {
+	Ipdir string
+	Port  string
+	Key   string
+}
+
 var cmdConsole string
 
 // Blockchain is a series of validated Blocks
 var Blockchain []Block
+
+var localP2P LocalP2P
 
 var mutex = &sync.Mutex{}
 
@@ -134,9 +143,11 @@ func main() {
 	golog.SetAllLoggers(gologging.INFO) // Change to DEBUG for extra info
 	//golog.SetAllLoggers(gologging.DEBUG) // Change to DEBUG for extra info
 
+	targetP2P := getTargetP2P()
+	fmt.Println(targetP2P)
+
 	// Parse options from the command line
 	listenF := flag.Int(flagL, 0, "")
-	target := flag.String(flagD, "", "")
 	seed := flag.Int64(flagSeed, 0, "")
 	mode := flag.String(flagMode, "", "")
 	flag.Parse()
@@ -159,7 +170,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if *target == "" {
+	if targetP2P == "" {
 		log.Println(cmdInitialNode)
 		log.Println(cmdInitialNode2)
 		println(cmdConsole)
@@ -173,7 +184,7 @@ func main() {
 
 		// The following code extracts target's peer ID from the
 		// given multiaddress
-		ipfsaddr, err := ma.NewMultiaddr(*target)
+		ipfsaddr, err := ma.NewMultiaddr(targetP2P)
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -206,6 +217,8 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
+		setTargetP2P("")
+		fmt.Println("setting p2p lambda!")
 		// Create a buffered stream so that read and writes are non blocking.
 		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
@@ -241,6 +254,8 @@ func viewState(rw *bufio.ReadWriter) {
 }
 
 func closeCon() {
+	deleteTargetP2P("")
+	fmt.Println("remove target lambda!!")
 	log.Fatal(endMessage)
 }
 

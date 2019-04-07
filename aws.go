@@ -14,12 +14,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-func uploadfile() {
+func getCredentials() *session.Session {
 	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: AnonymousCredentials,
 		Region:      aws.String(regionaws),
 	}))
+	return sess
+}
+
+func uploadfile() {
+
+	sess := getCredentials()
 	// Create an uploader with the session and default options
 	uploader := s3manager.NewUploader(sess)
 	filename := localfile
@@ -40,49 +46,12 @@ func uploadfile() {
 	fmt.Printf("file uploaded to, %s\n", result.Location)
 }
 
-func uploadvar() {
-	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
-	sess := session.Must(session.NewSession(&aws.Config{
-		Credentials: AnonymousCredentials,
-		Region:      aws.String(regionaws),
-	}))
-	// Create an uploader with the session and default options
-	uploader := s3manager.NewUploader(sess)
-	filename := bucketfile
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Printf("failed to open file %q, %v", filename, err)
-	}
-
-	// Upload the file to S3.
-	result, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(bucketname),
-		Key:    aws.String(bucketfile),
-		Body:   f,
-	})
-	if err != nil {
-		log.Printf("failed to upload file, %v", err)
-	}
-	fmt.Printf("file uploaded to, %s\n", result.Location)
-}
-
-func uploadkey() {
-	/*
-		TODO:
-	*/
-}
-
-func testLambda() {
-	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
-	sess := session.Must(session.NewSession(&aws.Config{
-		Credentials: AnonymousCredentials,
-		Region:      aws.String(regionaws),
-	}))
-	//arn:aws:lambda:us-east-2:232249444435:function:testFuncLambda
+func generalLambda(funcName string, funcParams string) string {
+	resp := ""
+	sess := getCredentials()
 	svc := lambda.New(sess)
-
 	input := &lambda.InvokeInput{
-		FunctionName:   aws.String(arnFunGetaws),
+		FunctionName:   aws.String(funcName),
 		InvocationType: aws.String("RequestResponse"),
 		LogType:        aws.String("Tail"),
 	}
@@ -137,7 +106,7 @@ func testLambda() {
 		} else {
 			fmt.Println(err.Error())
 		}
-		return
+		return ""
 	}
 	s := string(result.Payload)
 	mapBody := make(map[string]interface{})
@@ -156,8 +125,11 @@ func testLambda() {
 		}
 		cont++
 	}
-
-	fmt.Println(statusCode)
-	fmt.Println(body)
-
+	if statusCode == 200 {
+		fmt.Println(body)
+		resp = body
+	} else {
+		fmt.Println("bad answer")
+	}
+	return resp
 }
