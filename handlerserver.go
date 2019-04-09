@@ -154,7 +154,8 @@ func parserLocalP2P(fullstr string) {
 }
 
 func parserTarget(target string) string {
+	target = strings.Replace(target, "\"", "", -1)
 	splitFull := strings.Split(target, ":")
-	localTarget := "/ip4/" + splitFull[0] + "/tcp/" + splitFull[1] + "/ipfs" + splitFull[2]
+	localTarget := ipv4_2 + splitFull[0] + tcp2 + splitFull[1] + ipfs2 + splitFull[2]
 	return localTarget
 }

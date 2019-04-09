@@ -144,7 +144,12 @@ func main() {
 	//golog.SetAllLoggers(gologging.DEBUG) // Change to DEBUG for extra info
 
 	targetP2P := getTargetP2P()
-	fmt.Println(targetP2P)
+	if targetP2P == "" {
+		fmt.Println("empty target")
+	} else {
+		fmt.Println(targetP2P)
+	}
+	log.Fatal("FORCE END!")
 
 	// Parse options from the command line
 	listenF := flag.Int(flagL, 0, "")

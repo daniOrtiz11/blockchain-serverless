@@ -31,7 +31,7 @@ func uploadfile() {
 	filename := localfile
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Printf("failed to open file %q, %v", filename, err)
+		log.Printf(fileOpenError, filename, err)
 	}
 
 	// Upload the file to S3.
@@ -41,19 +41,22 @@ func uploadfile() {
 		Body:   f,
 	})
 	if err != nil {
-		log.Printf("failed to upload file, %v", err)
+		log.Printf(fileUploadError, err)
 	}
-	fmt.Printf("file uploaded to, %s\n", result.Location)
+	fmt.Printf(fileUploadError2, result.Location)
 }
 
 func generalLambda(funcName string, funcParams string) string {
 	resp := ""
 	sess := getCredentials()
 	svc := lambda.New(sess)
+	funcParams = "keyblc:testparamformGO"
+	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(funcName),
 		InvocationType: aws.String("RequestResponse"),
 		LogType:        aws.String("Tail"),
+		Payload:        bytespayload,
 	}
 
 	result, err := svc.Invoke(input)
@@ -112,7 +115,7 @@ func generalLambda(funcName string, funcParams string) string {
 	mapBody := make(map[string]interface{})
 	err2 := json.Unmarshal([]byte(s), &mapBody)
 	if err2 != nil {
-		log.Fatal("err to get response from aws")
+		log.Fatal(awsError)
 	}
 	cont := 0
 	var statusCode float64
@@ -126,10 +129,9 @@ func generalLambda(funcName string, funcParams string) string {
 		cont++
 	}
 	if statusCode == 200 {
-		fmt.Println(body)
 		resp = body
 	} else {
-		fmt.Println("bad answer")
+		fmt.Println(awsError)
 	}
 	return resp
 }

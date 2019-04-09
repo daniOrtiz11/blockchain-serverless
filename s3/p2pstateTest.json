@@ -1,0 +1,23 @@
+[
+    {
+      "Ip": "10.10.0.1",
+      "Port": "1000",
+      "Key": "key1",
+      "PrevKey": "",
+      "Configure": true
+    },
+    {
+        "Ip": "10.10.0.2",
+        "Port": "1001",
+        "Key": "key2",
+        "PrevKey": "key1",
+        "Configure": true
+      },
+      {
+        "Ip": "",
+        "Port": "",
+        "Key": "",
+        "PrevKey": "key2",
+        "Configure": false
+      }
+  ]
