@@ -34,9 +34,10 @@ type Block struct {
 
 //LocalP2P host ip, port and key
 type LocalP2P struct {
-	Ipdir string
-	Port  string
-	Key   string
+	Ipdir   string
+	Port    string
+	Key     string
+	PrevKey string
 }
 
 var cmdConsole string
@@ -144,12 +145,6 @@ func main() {
 	//golog.SetAllLoggers(gologging.DEBUG) // Change to DEBUG for extra info
 
 	targetP2P := getTargetP2P()
-	if targetP2P == "" {
-		fmt.Println("empty target")
-	} else {
-		fmt.Println(targetP2P)
-	}
-	log.Fatal("FORCE END!")
 
 	// Parse options from the command line
 	listenF := flag.Int(flagL, 0, "")
@@ -178,22 +173,21 @@ func main() {
 	if targetP2P == "" {
 		log.Println(cmdInitialNode)
 		log.Println(cmdInitialNode2)
-		println(cmdConsole)
 		// Set a stream handler on host A. /p2p/1.0.0 is
 		// a user-defined protocol name.
 		ha.SetStreamHandler(p2p, handleStream)
+		fmt.Println("setting p2p lambda!")
+		setTargetP2P()
 		select {} // hang forever
 		/**** This is where the listener code ends ****/
 	} else {
 		ha.SetStreamHandler(p2p, handleStream)
-
 		// The following code extracts target's peer ID from the
 		// given multiaddress
 		ipfsaddr, err := ma.NewMultiaddr(targetP2P)
 		if err != nil {
 			log.Fatalln(err)
 		}
-
 		pid, err := ipfsaddr.ValueForProtocol(ma.P_IPFS)
 		if err != nil {
 			log.Fatalln(err)
@@ -222,8 +216,8 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		setTargetP2P("")
 		fmt.Println("setting p2p lambda!")
+		setTargetP2P()
 		// Create a buffered stream so that read and writes are non blocking.
 		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 

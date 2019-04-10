@@ -128,14 +128,21 @@ func getTargetP2P() string {
 	}
 	//ip:port:key
 	//parser target, port and key
+	// /ip4/127.0.0.1/tcp/10001/ipfs/QmNwVfPWJHAssuUbXt2SaB3VVkpAF6eknK19V68mM7ccs2
 	// /ip4/127.0.0.1/tcp/10000/ipfs/xxxxxx
 	return targetParser
 }
 
-func setTargetP2P(clientP2P string) {
+func setTargetP2P() {
 	//ip:port:key
-	clientP2P = localP2P.Ipdir + ":" + localP2P.Port + ":" + localP2P.Key
-	generalLambda(arnFuncSetP2P, clientP2P)
+	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
+	paramClientP2P := "newnode:" + clientP2P
+	resp := generalLambda(arnFuncSetP2P, paramClientP2P)
+	if resp == "ok" {
+		fmt.Println("set ok!!")
+	} else if resp == "ko" {
+		fmt.Println("set bad!!")
+	}
 	//ok or ko
 }
 
@@ -150,12 +157,13 @@ func parserLocalP2P(fullstr string) {
 	splitFull := strings.Split(fullstr, "/")
 	localP2P.Ipdir = splitFull[2]
 	localP2P.Port = splitFull[4]
-	localP2P.Port = splitFull[6]
+	localP2P.Key = splitFull[6]
 }
 
 func parserTarget(target string) string {
 	target = strings.Replace(target, "\"", "", -1)
 	splitFull := strings.Split(target, ":")
+	localP2P.PrevKey = splitFull[2]
 	localTarget := ipv4_2 + splitFull[0] + tcp2 + splitFull[1] + ipfs2 + splitFull[2]
 	return localTarget
 }
