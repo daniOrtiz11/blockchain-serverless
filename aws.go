@@ -117,21 +117,28 @@ func generalLambda(funcName string, funcParams string) string {
 	if err2 != nil {
 		log.Fatal(awsError)
 	}
-	cont := 0
 	var statusCode float64
 	body := ""
+	statusCode = 0
 	for _, value := range mapBody {
-		if cont == 0 {
+		switch v := value.(type) {
+		case float64:
 			statusCode = value.(float64)
-		} else if cont == 1 {
+		case string:
 			body = value.(string)
+		default:
+			println(v)
+			log.Fatal("Error in parser type resp aws")
 		}
-		cont++
 	}
-	if statusCode == 200 {
-		resp = body
-	} else {
-		fmt.Println(awsError)
+	if statusCode != 0 && body != "" {
+		if statusCode == 200 || statusCode == 201 || statusCode == 202 {
+			resp = body
+		} else {
+			resp = "ko"
+			fmt.Println(awsError)
+		}
 	}
+
 	return resp
 }

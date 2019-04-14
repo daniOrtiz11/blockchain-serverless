@@ -26,7 +26,7 @@ exports.handler = async (event) => {
     return await s3.getObject(getParams).promise()
     .then((res) => {
         var obj = JSON.parse(res.Body); 
-        var strNode = "";
+        var strNode = "empty";
         var prevKey = "";
         for (let i = 0; i < obj.length; i++){
             if(obj[i].Configure == false && obj[i].Ip == "" && obj[i].Port == ""){

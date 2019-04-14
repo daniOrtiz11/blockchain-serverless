@@ -1,0 +1,16 @@
+[
+  {
+    "Index": 0,
+    "Timestamp": "2019-04-14 17:37:35.73123 +0200 CEST m=+0.020139337",
+    "CustomValue": 0,
+    "Hash": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7",
+    "PrevHash": ""
+  },
+  {
+    "Index": 1,
+    "Timestamp": "2019-04-14 17:38:44.654482 +0200 CEST m=+68.943075876",
+    "CustomValue": 23,
+    "Hash": "36d58c3ee1cbda68ff77e40797d55379a108b3709f1b09a942697a2e514e9d7e",
+    "PrevHash": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+  }
+]

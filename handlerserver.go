@@ -10,6 +10,7 @@ import (
 	net "gx/ipfs/QmY3ArotKMKaL7YGfbQfyDrib6RVraLqZYWXZvVgZktBxp/go-libp2p-net"
 	host "gx/ipfs/QmYrWiWM4qtrnCeT3R14jY3ZZyirDNJgwK57q4qFYePgbd/go-libp2p-host"
 	"io"
+	"log"
 	mrand "math/rand"
 	"strings"
 
@@ -123,7 +124,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 func getTargetP2P() string {
 	target := generalLambda(arnFuncGetP2P, "")
 	targetParser := ""
-	if target != "" {
+	if target != "" && target != "empty" {
 		targetParser = parserTarget(target)
 	}
 	//ip:port:key
@@ -136,20 +137,25 @@ func getTargetP2P() string {
 func setTargetP2P() {
 	//ip:port:key
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "newnode:" + clientP2P
+	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
 	resp := generalLambda(arnFuncSetP2P, paramClientP2P)
 	if resp == "ok" {
-		fmt.Println("set ok!!")
+		setTargetP2P()
 	} else if resp == "ko" {
-		fmt.Println("set bad!!")
+		log.Fatal(errorSetP2P)
 	}
-	//ok or ko
 }
 
-func deleteTargetP2P(clientP2P string) {
+func deleteTargetP2P() {
 	//ip:port:key
-	clientP2P = localP2P.Ipdir + ":" + localP2P.Port + ":" + localP2P.Key
-	generalLambda(arnFuncDeleteP2P, clientP2P)
+	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
+	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	resp := generalLambda(arnFuncSetP2P, paramClientP2P)
+	if resp == "ok" {
+		setTargetP2P()
+	} else if resp == "ko" {
+		log.Fatal(errorSetP2P)
+	}
 	//ok or ko
 }
 

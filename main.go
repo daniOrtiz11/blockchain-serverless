@@ -145,7 +145,6 @@ func main() {
 	//golog.SetAllLoggers(gologging.DEBUG) // Change to DEBUG for extra info
 
 	targetP2P := getTargetP2P()
-
 	// Parse options from the command line
 	listenF := flag.Int(flagL, 0, "")
 	seed := flag.Int64(flagSeed, 0, "")
@@ -176,8 +175,9 @@ func main() {
 		// Set a stream handler on host A. /p2p/1.0.0 is
 		// a user-defined protocol name.
 		ha.SetStreamHandler(p2p, handleStream)
-		fmt.Println("setting p2p lambda!")
+		fmt.Println(startingSetP2P)
 		setTargetP2P()
+		fmt.Println(startedSetP2P)
 		select {} // hang forever
 		/**** This is where the listener code ends ****/
 	} else {
@@ -216,8 +216,9 @@ func main() {
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Println("setting p2p lambda!")
+		fmt.Println(startingSetP2P)
 		setTargetP2P()
+		fmt.Println(startedSetP2P)
 		// Create a buffered stream so that read and writes are non blocking.
 		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
@@ -253,8 +254,7 @@ func viewState(rw *bufio.ReadWriter) {
 }
 
 func closeCon() {
-	deleteTargetP2P("")
-	fmt.Println("remove target lambda!!")
+	//deleteTargetP2P()
 	log.Fatal(endMessage)
 }
 
