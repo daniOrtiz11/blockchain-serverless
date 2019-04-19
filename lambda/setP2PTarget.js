@@ -43,7 +43,7 @@ exports.handler = async (event) => {
             }
           } else {
             needSet = true;
-            obj.push({"Ip":newIp,"Port":newPort,"Key":newKey,"PrevKey":"","Configure":true});
+            obj.push({"Ip":newIp,"Port":newPort,"Key":newKey,"PrevKey":"initial","Configure":true});
           }
           if(needSet == true){
             obj.push({"Ip":"","Port":"","Key":"","PrevKey":newKey,"Configure":false});

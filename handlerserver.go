@@ -103,19 +103,9 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		addrstr := fmt.Sprintf(iplocalhost, listenPort)
 		realaddress := addrstr + ipfs2 + nextkey
 		parserLocalP2P(realaddress)
-		if debug {
-			cmdConsole = fmt.Sprintf(debugcmd, listSources, listenPort+1, realaddress)
-		} else {
-			cmdConsole = fmt.Sprintf(prodcmd, listenPort+1, realaddress)
-		}
 	} else {
 		fullAddr := addr.Encapsulate(hostAddr)
 		parserLocalP2P(fullAddr.String())
-		if debug {
-			cmdConsole = fmt.Sprintf(debugcmd, listSources, listenPort+1, fullAddr)
-		} else {
-			cmdConsole = fmt.Sprintf(prodcmd, listenPort+1, fullAddr)
-		}
 	}
 
 	return basicHost, nil
@@ -127,11 +117,18 @@ func getTargetP2P() string {
 	if target != "" && target != "empty" {
 		targetParser = parserTarget(target)
 	}
-	//ip:port:key
-	//parser target, port and key
-	// /ip4/127.0.0.1/tcp/10001/ipfs/QmNwVfPWJHAssuUbXt2SaB3VVkpAF6eknK19V68mM7ccs2
-	// /ip4/127.0.0.1/tcp/10000/ipfs/xxxxxx
 	return targetParser
+}
+
+func getPingP2P() string {
+	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
+	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	ping := generalLambda(arnFuncPingP2P, paramClientP2P)
+	pingResult := "ko"
+	if ping == "ok" {
+		pingResult = "ok"
+	}
+	return pingResult
 }
 
 func setTargetP2P() {
@@ -146,15 +143,18 @@ func setTargetP2P() {
 	}
 }
 
-func deleteTargetP2P() {
+func deleteTargetP2P(needCheck bool) {
 	//ip:port:key
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
 	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
-	resp := generalLambda(arnFuncSetP2P, paramClientP2P)
+	resp := generalLambda(arnFuncDeleteP2P, paramClientP2P)
 	if resp == "ok" {
-		setTargetP2P()
+		ping := getPingP2P()
+		if ping == "ok" && needCheck == true {
+			deleteTargetP2P(false)
+		}
 	} else if resp == "ko" {
-		log.Fatal(errorSetP2P)
+		log.Fatal(errorDeleteP2P)
 	}
 	//ok or ko
 }

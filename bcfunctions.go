@@ -73,7 +73,8 @@ func insertBlc(customvalue int, Blockchain []Block) []Block {
 			log.Printf(exceptionJSON)
 			log.Fatal(err)
 		}
-		if !debug {
+		debug := false
+		if debug == true {
 			updateGlobal(bytes)
 		}
 		mutex.Unlock()

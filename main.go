@@ -40,8 +40,6 @@ type LocalP2P struct {
 	PrevKey string
 }
 
-var cmdConsole string
-
 // Blockchain is a series of validated Blocks
 var Blockchain []Block
 
@@ -119,9 +117,6 @@ func writeData(rw *bufio.ReadWriter) {
 					insertBlock()
 					inOk = true
 				case 3:
-					showRunCmd()
-					inOk = true
-				case 4:
 					closeCon()
 					inOk = true
 				default:
@@ -148,19 +143,10 @@ func main() {
 	// Parse options from the command line
 	listenF := flag.Int(flagL, 0, "")
 	seed := flag.Int64(flagSeed, 0, "")
-	mode := flag.String(flagMode, "", "")
 	flag.Parse()
 
 	if *listenF == 0 {
 		log.Fatal(badFormatArgument)
-	}
-
-	if *mode == debugstr {
-		debug = true
-	} else if *mode == prodstr || *mode == "" {
-		debug = false
-	} else {
-		log.Fatal(badFormatMode)
 	}
 
 	// Make a host that listens on the given multiaddress
@@ -236,44 +222,51 @@ func showHelp() {
 	fmt.Println(options1)
 	fmt.Println(options2)
 	fmt.Println(options3)
-	fmt.Println(options4)
 	fmt.Print("> ")
 }
 
 func viewState(rw *bufio.ReadWriter) {
-	fmt.Println(options1Title)
-	bytes, err := json.Marshal(Blockchain)
-	if err != nil {
-		log.Println(err)
+	pingP2P := getPingP2P()
+	if pingP2P == "ok" {
+		fmt.Println(options1Title)
+		bytes, err := json.Marshal(Blockchain)
+		if err != nil {
+			log.Println(err)
+		}
+		spew.Dump(Blockchain)
+		mutex.Lock()
+		rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
+		rw.Flush()
+		mutex.Unlock()
+	} else {
+		log.Println(koPingP2P)
+		log.Println(reconnectingP2P)
 	}
-	spew.Dump(Blockchain)
-	mutex.Lock()
-	rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-	rw.Flush()
-	mutex.Unlock()
 }
 
 func closeCon() {
-	//deleteTargetP2P()
+	deleteTargetP2P(true)
 	log.Fatal(endMessage)
 }
 
-func showRunCmd() {
-	println(cmdConsole)
-}
-
 func insertBlock() {
-	fmt.Println(options2Title)
-	fmt.Print("> ")
-	stdReader := bufio.NewReader(os.Stdin)
-	sendData, err := stdReader.ReadString('\n')
-	if err != nil {
-		log.Printf(exceptionReader)
-		log.Fatal(err)
-	}
-	sendData = strings.Replace(sendData, "\n", "", -1)
-	customvalue, err := strconv.Atoi(sendData)
-	if err == nil {
-		Blockchain = insertBlc(customvalue, Blockchain)
+	pingP2P := getPingP2P()
+	if pingP2P == "ok" {
+		fmt.Println(options2Title)
+		fmt.Print("> ")
+		stdReader := bufio.NewReader(os.Stdin)
+		sendData, err := stdReader.ReadString('\n')
+		if err != nil {
+			log.Printf(exceptionReader)
+			log.Fatal(err)
+		}
+		sendData = strings.Replace(sendData, "\n", "", -1)
+		customvalue, err := strconv.Atoi(sendData)
+		if err == nil {
+			Blockchain = insertBlc(customvalue, Blockchain)
+		}
+	} else {
+		log.Println(koPingP2P)
+		log.Println(reconnectingP2P)
 	}
 }

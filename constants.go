@@ -9,9 +9,6 @@ const fileUploadError2 = "file uploaded to, %s\n"
 //TEMP FILE CONSTANTS:
 const localfile string = "blc.json"
 
-//ENV
-var debug = true
-
 //STRINGS
 const ipfs = "/ipfs/%s"
 const ipfs2 = "/ipfs/"
@@ -22,8 +19,6 @@ const tcp2 = "/tcp/"
 const iplocalhost = "/ip4/127.0.0.1/tcp/%d"
 
 const listSources = "main.go bcfunctions.go constants.go aws.go utils.go handlerserver.go"
-const debugcmd = "Now run \"go run %s -l %d -d %s -mode debug\" on a different terminal\n"
-const prodcmd = "Now run \"blockchain-serverless -l %d -d %s\" on a different terminal\n"
 const exceptionJSON = "Exception in json library: "
 const exceptionReader = "Exception in reader: "
 const badFormatOption = "Error: Please provide a option"
@@ -46,9 +41,11 @@ const options1 = "1. View State"
 const options1Title = "Current Blockchain state:"
 const options2 = "2. Insert new value"
 const options2Title = "Insert a new value:"
-const options3 = "3. Show command to run"
-const options4 = "4. Close connection"
+const options3 = "3. Close connection"
 const endMessage = "Closing connection, bye!"
 const startingSetP2P = "Starting set new node..."
 const startedSetP2P = "Setted ok!"
-const errorSetP2P = "Error setting P2P"
+const errorSetP2P = "Error setting P2P node"
+const errorDeleteP2P = "Error deleting P2P node"
+const koPingP2P = "Your node is currently disconnect"
+const reconnectingP2P = "Reconnecting..."

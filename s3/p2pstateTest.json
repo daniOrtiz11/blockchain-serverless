@@ -14,10 +14,17 @@
         "Configure": true
       },
       {
+        "Ip": "10.10.0.3",
+        "Port": "1001",
+        "Key": "key3",
+        "PrevKey": "key2",
+        "Configure": true
+      },
+      {
         "Ip": "",
         "Port": "",
         "Key": "",
-        "PrevKey": "key2",
+        "PrevKey": "key3",
         "Configure": false
       }
   ]
