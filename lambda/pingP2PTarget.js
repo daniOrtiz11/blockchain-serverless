@@ -21,8 +21,8 @@ exports.handler = async (event) => {
           var configure = "ko";
           if(obj.length > 0){
             for (let i = 0; i < obj.length; i++){
-              if(obj[i].Configure == true && obj[i].Key == newKey && obj[i].Port == port ){
-                  configure = "ko";
+              if(obj[i].Configure == true && obj[i].Ip == ip && obj[i].Port == port ){
+                  configure = "ok";
               }
             }
           }

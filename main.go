@@ -160,9 +160,24 @@ func main() {
 		log.Println(cmdInitialNode2)
 		// Set a stream handler on host A. /p2p/1.0.0 is
 		// a user-defined protocol name.
+
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt)
+		go func() {
+			for sig := range c {
+				closeCon()
+				log.Fatalln(sig)
+			}
+		}()
+
 		ha.SetStreamHandler(p2p, handleStream)
 		fmt.Println(startingSetP2P)
-		setTargetP2P()
+		ping := getPingP2P()
+		if ping != "ok" {
+			setTargetP2P()
+		} else {
+			log.Fatal(errorDirRepeat)
+		}
 		fmt.Println(startedSetP2P)
 		select {} // hang forever
 		/**** This is where the listener code ends ****/
@@ -200,10 +215,16 @@ func main() {
 		// we use the same /p2p/1.0.0 protocol
 		s, err := ha.NewStream(context.Background(), peerid, p2p)
 		if err != nil {
+			log.Fatal(errorDirRepeat)
 			log.Fatalln(err)
 		}
 		fmt.Println(startingSetP2P)
-		setTargetP2P()
+		ping := getPingP2P()
+		if ping != "ok" {
+			setTargetP2P()
+		} else {
+			log.Fatal(errorDirRepeat)
+		}
 		fmt.Println(startedSetP2P)
 		// Create a buffered stream so that read and writes are non blocking.
 		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
