@@ -12,24 +12,6 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-func showMenu1() {
-	fmt.Println(optionsTitle)
-	fmt.Println(login1)
-	fmt.Println(login2)
-	fmt.Println(closeOptionLogin)
-	fmt.Print("> ")
-}
-
-func showMenu2() {
-	fmt.Println(optionsTitle)
-	fmt.Println(options1Title)
-	fmt.Println(options2Title)
-	fmt.Println(options3Title)
-	fmt.Println(options4Title)
-	fmt.Println(closeOptionMenu)
-	fmt.Print("> ")
-}
-
 func viewState(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
 	if pingP2P == "ok" {
@@ -181,6 +163,7 @@ func login(rw *bufio.ReadWriter) {
 				fmt.Println("Error in your login. Check your credentials")
 			} else {
 				account = bank[iacc]
+				logged = true
 				loggedActions(rw, stdReader)
 			}
 		}
@@ -213,6 +196,7 @@ func createAccount(rw *bufio.ReadWriter) {
 
 				fmt.Println("Succesfully creating account!")
 				toStringAccount()
+				logged = true
 				loggedActions(rw, stdReader)
 			}
 		}
@@ -263,32 +247,44 @@ func loggedActions(rw *bufio.ReadWriter, stdReader *bufio.Reader) {
 	}
 }
 
-func mainActions(rw *bufio.ReadWriter, stdReader *bufio.Reader) bool {
+func mainActions(rw *bufio.ReadWriter) bool {
 	inOk := false
-	showMenu1()
-	sendData, err := stdReader.ReadString('\n')
-	if err != nil {
-		log.Printf(exceptionReader)
-		log.Fatal(err)
-	}
-	sendData = strings.Replace(sendData, "\n", "", -1)
-	option, err := strconv.Atoi(sendData)
-	if err == nil {
-		switch option {
-		case 1:
-			login(rw)
-			inOk = true
-		case 2:
-			createAccount(rw)
-			inOk = true
-		case 3:
-			closeCon()
-			inOk = true
-		default:
-			fmt.Println(badFormatOption)
+	stdReader := bufio.NewReader(os.Stdin)
+	if logged == false {
+		showMenu1()
+		sendData, err := stdReader.ReadString('\n')
+		if err != nil {
+			log.Printf(exceptionReader)
+			log.Fatal(err)
+		}
+		sendData = strings.Replace(sendData, "\n", "", -1)
+		option, err := strconv.Atoi(sendData)
+		if err == nil {
+			switch option {
+			case 1:
+				login(rw)
+				inOk = true
+			case 2:
+				createAccount(rw)
+				inOk = true
+			case 3:
+				closeCon()
+				inOk = true
+			default:
+				fmt.Println(badFormatOption)
+			}
+		} else {
+			fmt.Println(badFormatNumber)
 		}
 	} else {
-		fmt.Println(badFormatNumber)
+		loggedActions(rw, stdReader)
 	}
+
 	return inOk
+}
+
+func restartAmountBank() {
+	for i := 0; i < len(bank); i++ {
+		bank[i].Amount = 100
+	}
 }

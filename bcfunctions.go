@@ -115,6 +115,7 @@ func updateBlc(chain []Block, Blockchain []Block) []Block {
 
 func updateBank(newMovs int, chain []Block) {
 	i := 0
+	restartAmountBank()
 	for i = 0; i < newMovs; i++ {
 		t := chain[i].Transaction
 		if t.Amount > -2 {

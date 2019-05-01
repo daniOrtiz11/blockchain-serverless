@@ -66,6 +66,8 @@ var targetP2P string
 var listenF *int
 var seed *int64
 
+var logged bool
+
 func main() {
 	t := time.Now()
 	genesisBlock := Block{}
@@ -94,6 +96,7 @@ func main() {
 }
 
 func generalMain() {
+	logged = false
 	targetP2P = getTargetP2P()
 	// Make a host that listens on the given multiaddress
 	ha, err := makeBasicHost(*listenF, *seed)

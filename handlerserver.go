@@ -212,12 +212,10 @@ func writeData(rw *bufio.ReadWriter) {
 		}
 	}()
 
-	stdReader := bufio.NewReader(os.Stdin)
-
 	for {
 		inOk := false
 		for inOk == false {
-			inOk = mainActions(rw, stdReader)
+			inOk = mainActions(rw)
 		}
 	}
 }

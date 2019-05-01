@@ -47,3 +47,21 @@ func toStringAccount() {
 	fmt.Println("Public Key: " + account.PublicID)
 	fmt.Println("Private Key: " + account.PrivateID)
 }
+
+func showMenu1() {
+	fmt.Println(optionsTitle)
+	fmt.Println(login1)
+	fmt.Println(login2)
+	fmt.Println(closeOptionLogin)
+	fmt.Print("> ")
+}
+
+func showMenu2() {
+	fmt.Println(optionsTitle)
+	fmt.Println(options1Title)
+	fmt.Println(options2Title)
+	fmt.Println(options3Title)
+	fmt.Println(options4Title)
+	fmt.Println(closeOptionMenu)
+	fmt.Print("> ")
+}
