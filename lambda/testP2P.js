@@ -1,5 +1,37 @@
-var obj = [{"Ip":"127.0.0.1","Port":"10000","Key":"Qmf4c5VLKeoW9QDWb8J7XESncxPqKaNUvk4omTSF72dtBb","PrevKey":"","Configure":true},{"Ip":"127.0.0.1","Port":"10001","Key":"QmedVDCf5MJDgC9BH84EcNVkgpo9h12MoTBXVc7e3yWWZ7","PrevKey":"Qmf4c5VLKeoW9QDWb8J7XESncxPqKaNUvk4omTSF72dtBb","Configure":true},{"Ip":"","Port":"","Key":"","PrevKey":"QmedVDCf5MJDgC9BH84EcNVkgpo9h12MoTBXVc7e3yWWZ7","Configure":false}];
-var key = "QmedVDCf5MJDgC9BH84EcNVkgpo9h12MoTBXVc7e3yWWZ7";
+var obj = 
+[
+  {
+      "Ip": "127.0.0.1",
+      "Port": "10000",
+      "Key": "Qmb2UUE8G2kGaFdFVUo2EfaeJfGXrUddV7RrfLLmJ2Jdda",
+      "PrevKey": "initial",
+      "Configure": true
+  },
+  {
+      "Ip": "127.0.0.1",
+      "Port": "10001",
+      "Key": "QmeDzSrU6q8AMrABJKNe9h7xKydit5rSu4BLPfWxdTvZtJ",
+      "PrevKey": "Qmb2UUE8G2kGaFdFVUo2EfaeJfGXrUddV7RrfLLmJ2Jdda",
+      "Configure": true
+  },
+  {
+      "Ip": "127.0.0.1",
+      "Port": "10002",
+      "Key": "QmV8TzxJQCVxJ3abCteu94WNF6phpGWRZmsw5bjeLy2zPC",
+      "PrevKey": "QmeDzSrU6q8AMrABJKNe9h7xKydit5rSu4BLPfWxdTvZtJ",
+      "Configure": true
+  },
+  {
+      "Ip": "",
+      "Port": "",
+      "Key": "",
+      "PrevKey": "QmV8TzxJQCVxJ3abCteu94WNF6phpGWRZmsw5bjeLy2zPC",
+      "Configure": false
+  }
+];
+
+
+var key = "QmeDzSrU6q8AMrABJKNe9h7xKydit5rSu4BLPfWxdTvZtJ";
 console.log(obj);
 debugger;
 deleteFromObject(key,obj);

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	crypto "gx/ipfs/QmTW4SdgBWq9GjsBsHeUx8WuGxzhgzAf88UMH2w62PC8yK/go-libp2p-crypto"
 	ma "gx/ipfs/QmTZBfrPJmjWsCvHEtX5FE6KimVJhsJg5sBbqEFYf4UZtL/go-multiaddr"
@@ -12,7 +13,10 @@ import (
 	"io"
 	"log"
 	mrand "math/rand"
+	"os"
+	"os/signal"
 	"strings"
+	"time"
 
 	libp2p "github.com/libp2p/go-libp2p"
 )
@@ -159,17 +163,61 @@ func deleteTargetP2P(needCheck bool) {
 	//ok or ko
 }
 
-func parserLocalP2P(fullstr string) {
-	splitFull := strings.Split(fullstr, "/")
-	localP2P.Ipdir = splitFull[2]
-	localP2P.Port = splitFull[4]
-	localP2P.Key = splitFull[6]
+func readData(rw *bufio.ReadWriter) {
+	for {
+		str, err := rw.ReadString('\n')
+		if err != nil || str == "" {
+			return
+		} else if str != "\n" {
+			chain := make([]Block, 0)
+			if err := json.Unmarshal([]byte(str), &chain); err != nil {
+				log.Printf(exceptionJSON)
+				log.Fatal(err)
+			}
+			mutex.Lock()
+			//Updating blc from broadcast
+			Blockchain = updateBlc(chain, Blockchain)
+			mutex.Unlock()
+		}
+	}
 }
 
-func parserTarget(target string) string {
-	target = strings.Replace(target, "\"", "", -1)
-	splitFull := strings.Split(target, ":")
-	localP2P.PrevKey = splitFull[2]
-	localTarget := ipv4_2 + splitFull[0] + tcp2 + splitFull[1] + ipfs2 + splitFull[2]
-	return localTarget
+func writeData(rw *bufio.ReadWriter) {
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			closeCon()
+			log.Fatalln(sig)
+		}
+	}()
+
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			mutex.Lock()
+			bytes, err := json.Marshal(Blockchain)
+			if err != nil {
+				log.Printf(exceptionJSON)
+				log.Println(err)
+			}
+			mutex.Unlock()
+			//spew.Dump(Blockchain)
+			mutex.Lock()
+			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
+			rw.Flush()
+			mutex.Unlock()
+
+		}
+	}()
+
+	stdReader := bufio.NewReader(os.Stdin)
+
+	for {
+		inOk := false
+		for inOk == false {
+			inOk = mainActions(rw, stdReader)
+		}
+	}
 }
