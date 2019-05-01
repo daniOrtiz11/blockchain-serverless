@@ -160,6 +160,7 @@ func insertAccountBlock(newac Account) {
 	t.Amount = 0
 	t.SourceID = newac.PublicID
 	t.TargetID = newac.PrivateID
+	Blockchain = insertBlc(t, Blockchain)
 }
 
 func login(rw *bufio.ReadWriter) {
