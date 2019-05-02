@@ -11,9 +11,8 @@ func bytestofile(b []byte) {
 	f, err := os.Create(localfile)
 	check(err)
 	defer f.Close()
-	n2, err := f.Write(b)
-	check(err)
-	fmt.Printf("wrote %d bytes\n", n2)
+	_, err2 := f.Write(b)
+	check(err2)
 }
 
 func check(e error) {
@@ -37,15 +36,11 @@ func parserTarget(target string) string {
 	return localTarget
 }
 
-func toStringTransaction(t Transaction) string {
-	return t.SourceID + "##" + strconv.Itoa(t.Amount) + "##" + t.TargetID
-}
-
 func toStringAccount() {
-	fmt.Println("Name: " + account.Name)
-	fmt.Println("Coins: " + strconv.Itoa(account.Amount))
-	fmt.Println("Public Key: " + account.PublicID)
-	fmt.Println("Private Key: " + account.PrivateID)
+	fmt.Println(nameAccountStr + account.Name)
+	fmt.Println(coinsAccountStr + strconv.Itoa(account.Amount))
+	fmt.Println(publicAccountStr + account.PublicID)
+	fmt.Println(privateAccountStr + account.PrivateID)
 }
 
 func showMenu1() {

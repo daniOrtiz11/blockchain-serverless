@@ -60,7 +60,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		opts: address, identity to new connect between peer.
 	*/
 
-	addrstr := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)
+	addrstr := fmt.Sprintf(iplocalhost, listenPort)
 	//addrstr := fmt.Sprintf("/ip4/192.168.1.135/tcp/%d", listenPort)
 	//addrstr := fmt.Sprintf("/ip4/81.0.3.81/tcp/%d", listenPort)
 	//addrstr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", listenPort)
@@ -118,7 +118,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 func getTargetP2P() string {
 	target := generalLambda(arnFuncGetP2P, "")
 	targetParser := ""
-	if target != "" && target != "empty" {
+	if target != "" && target != emptyC {
 		targetParser = parserTarget(target)
 	}
 	return targetParser
@@ -126,11 +126,11 @@ func getTargetP2P() string {
 
 func getPingP2P() string {
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	paramClientP2P := initParam + clientP2P + "\"}"
 	ping := generalLambda(arnFuncPingP2P, paramClientP2P)
-	pingResult := "ko"
-	if ping == "ok" {
-		pingResult = "ok"
+	pingResult := koC
+	if ping == okC {
+		pingResult = okC
 	}
 	return pingResult
 }
@@ -138,11 +138,11 @@ func getPingP2P() string {
 func setTargetP2P() {
 	//ip:port:key
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	paramClientP2P := initParam + clientP2P + "\"}"
 	resp := generalLambda(arnFuncSetP2P, paramClientP2P)
-	if resp == "ok" {
+	if resp == okC {
 		setTargetP2P()
-	} else if resp == "ko" {
+	} else if resp == koC {
 		log.Fatal(errorSetP2P)
 	}
 }
@@ -150,17 +150,16 @@ func setTargetP2P() {
 func deleteTargetP2P(needCheck bool) {
 	//ip:port:key
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	paramClientP2P := initParam + clientP2P + "\"}"
 	resp := generalLambda(arnFuncDeleteP2P, paramClientP2P)
-	if resp == "ok" {
+	if resp == okC {
 		ping := getPingP2P()
-		if ping == "ok" && needCheck == true {
+		if ping == okC && needCheck == true {
 			deleteTargetP2P(false)
 		}
-	} else if resp == "ko" {
+	} else if resp == koC {
 		log.Fatal(errorDeleteP2P)
 	}
-	//ok or ko
 }
 
 func readData(rw *bufio.ReadWriter) {
@@ -171,7 +170,7 @@ func readData(rw *bufio.ReadWriter) {
 		} else if str != "\n" {
 			chain := make([]Block, 0)
 			if err := json.Unmarshal([]byte(str), &chain); err != nil {
-				log.Printf(exceptionJSON)
+				fmt.Printf(exceptionJSON)
 				log.Fatal(err)
 			}
 			mutex.Lock()
@@ -199,12 +198,14 @@ func writeData(rw *bufio.ReadWriter) {
 			mutex.Lock()
 			bytes, err := json.Marshal(Blockchain)
 			if err != nil {
-				log.Printf(exceptionJSON)
-				log.Println(err)
+				fmt.Printf(exceptionJSON)
+				fmt.Println(err)
 			}
 			mutex.Unlock()
+			//print blockchain
 			//spew.Dump(Blockchain)
 			mutex.Lock()
+			//sending blockchain to broadcast
 			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
 			rw.Flush()
 			mutex.Unlock()

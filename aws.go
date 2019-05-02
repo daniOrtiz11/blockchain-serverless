@@ -31,7 +31,7 @@ func uploadfile() {
 	filename := localfile
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Printf(fileOpenError, filename, err)
+		fmt.Printf(fileOpenError, filename, err)
 	}
 
 	// Upload the file to S3.
@@ -41,7 +41,7 @@ func uploadfile() {
 		Body:   f,
 	})
 	if err != nil {
-		log.Printf(fileUploadError, err)
+		fmt.Printf(fileUploadError, err)
 	}
 	fmt.Printf(fileUploadError2, result.Location)
 }
@@ -54,8 +54,8 @@ func generalLambda(funcName string, funcParams string) string {
 	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(funcName),
-		InvocationType: aws.String("RequestResponse"),
-		LogType:        aws.String("Tail"),
+		InvocationType: aws.String(responseParam),
+		LogType:        aws.String(logParam),
 		Payload:        bytespayload,
 	}
 
@@ -128,14 +128,14 @@ func generalLambda(funcName string, funcParams string) string {
 			body = value.(string)
 		default:
 			println(v)
-			log.Fatal("Error in parser type resp aws")
+			log.Fatal(errorRespAws)
 		}
 	}
 	if statusCode != 0 && body != "" {
 		if statusCode == 200 || statusCode == 201 || statusCode == 202 {
 			resp = body
 		} else {
-			resp = "ko"
+			resp = koC
 			fmt.Println(awsError)
 		}
 	}

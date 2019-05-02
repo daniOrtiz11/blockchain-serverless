@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"time"
 )
@@ -97,7 +98,7 @@ func generateBlock(oldBlock Block, transaction Transaction) Block {
 func generateAccount(name string) Account {
 	var newAccount Account
 	newAccount.Name = name
-	newAccount.Amount = 100
+	newAccount.Amount = initAmountAccount
 	newAccount.PublicID = calculateHashAccount(name)
 	t := time.Now()
 	newAccount.PrivateID = calculateHashAccount(name + string(newAccount.PublicID) + t.String())
@@ -123,18 +124,23 @@ func updateBank(newMovs int, chain []Block) {
 			if indexSource == -1 {
 				var acc Account
 				acc.PublicID = t.SourceID
-				acc.Amount = 100
+				acc.Amount = initAmountAccount
 				bank = append(bank, acc)
 				indexSource = searchAccountByPublicKey(t.SourceID)
 			}
-			if t.Amount == -1 {
+			if t.Amount == createAmountName {
 				bank[indexSource].Name = t.TargetID
-			} else if t.Amount == 0 {
+			} else if t.Amount == createAmountPriv {
 				bank[indexSource].PrivateID = t.TargetID
 			} else {
 				indexTarget := searchAccountByPublicKey(t.TargetID)
 				bank[indexSource].Amount = bank[indexSource].Amount - t.Amount
 				bank[indexTarget].Amount = bank[indexTarget].Amount + t.Amount
+				if account.PublicID == bank[indexTarget].PublicID {
+					account.Amount = account.Amount + t.Amount
+				} else if account.PublicID == bank[indexSource].PublicID {
+					account.Amount = account.Amount - t.Amount
+				}
 			}
 		}
 	}
@@ -153,7 +159,7 @@ func insertBlc(transaction Transaction, Blockchain []Block) []Block {
 		updateBankByTransaction(transaction)
 		bytes, err := json.MarshalIndent(Blockchain, "", "  ")
 		if err != nil {
-			log.Printf(exceptionJSON)
+			fmt.Print(exceptionJSON)
 			log.Fatal(err)
 		}
 		debug := false

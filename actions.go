@@ -14,11 +14,11 @@ import (
 
 func viewState(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
+	if pingP2P == okC {
 		fmt.Println(options1Title1)
 		bytes, err := json.Marshal(Blockchain)
 		if err != nil {
-			log.Println(err)
+			fmt.Println(err)
 		}
 		spew.Dump(Blockchain)
 		mutex.Lock()
@@ -26,16 +26,16 @@ func viewState(rw *bufio.ReadWriter) {
 		rw.Flush()
 		mutex.Unlock()
 	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
+		fmt.Println(koPingP2P)
+		fmt.Println(reconnectingP2P)
 		generalMain()
 	}
 }
 
 func viewBank(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
-		fmt.Println("Current Bank state:")
+	if pingP2P == okC {
+		fmt.Println(options4Ttile1)
 		mutex.Lock()
 		for i := 0; i < len(bank); i++ {
 			acc := bank[i]
@@ -44,22 +44,22 @@ func viewBank(rw *bufio.ReadWriter) {
 		}
 		mutex.Unlock()
 	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
+		fmt.Println(koPingP2P)
+		fmt.Println(reconnectingP2P)
 		generalMain()
 	}
 }
 
 func viewAccountState(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
-		fmt.Println("Current Account state:")
+	if pingP2P == okC {
+		fmt.Println(options2Title1)
 		mutex.Lock()
 		toStringAccount()
 		mutex.Unlock()
 	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
+		fmt.Println(koPingP2P)
+		fmt.Println(reconnectingP2P)
 		generalMain()
 	}
 }
@@ -71,7 +71,7 @@ func closeCon() {
 
 func insertBlock() {
 	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
+	if pingP2P == okC {
 		enabledAmount := false
 		realAmount := 0
 		for enabledAmount == false {
@@ -80,7 +80,7 @@ func insertBlock() {
 			stdReader := bufio.NewReader(os.Stdin)
 			sendData, err := stdReader.ReadString('\n')
 			if err != nil {
-				log.Printf(exceptionReader)
+				fmt.Printf(exceptionReader)
 				log.Fatal(err)
 			}
 			sendData = strings.Replace(sendData, "\n", "", -1)
@@ -104,7 +104,7 @@ func insertBlock() {
 			stdReader := bufio.NewReader(os.Stdin)
 			sendData, err := stdReader.ReadString('\n')
 			if err != nil {
-				log.Printf(exceptionReader)
+				fmt.Printf(exceptionReader)
 				log.Fatal(err)
 			}
 			idUser := strings.Replace(sendData, "\n", "", -1)
@@ -127,19 +127,19 @@ func insertBlock() {
 		account.Amount = account.Amount - t.Amount
 		Blockchain = insertBlc(t, Blockchain)
 	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
+		fmt.Println(koPingP2P)
+		fmt.Println(reconnectingP2P)
 		generalMain()
 	}
 }
 
 func insertAccountBlock(newac Account) {
 	var t Transaction
-	t.Amount = -1
+	t.Amount = createAmountName
 	t.SourceID = newac.PublicID
 	t.TargetID = newac.Name
 	Blockchain = insertBlc(t, Blockchain)
-	t.Amount = 0
+	t.Amount = createAmountPriv
 	t.SourceID = newac.PublicID
 	t.TargetID = newac.PrivateID
 	Blockchain = insertBlc(t, Blockchain)
@@ -147,62 +147,64 @@ func insertAccountBlock(newac Account) {
 
 func login(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
-		fmt.Println("Introduce your private key:")
+	if pingP2P == okC {
+		fmt.Println(login1Title1)
 		fmt.Print("> ")
 		stdReader := bufio.NewReader(os.Stdin)
 		sendData, err := stdReader.ReadString('\n')
 		if err != nil {
-			log.Printf(exceptionReader)
+			fmt.Printf(exceptionReader)
 			log.Fatal(err)
 		}
 		privateKey := strings.Replace(sendData, "\n", "", -1)
 		if err == nil {
 			iacc := searchAccountByPrivKey(privateKey)
 			if iacc == -1 {
-				fmt.Println("Error in your login. Check your credentials")
+				fmt.Println(errorLogin)
 			} else {
 				account = bank[iacc]
 				logged = true
+				fmt.Println(welcomeLogged + account.Name + "!")
 				loggedActions(rw, stdReader)
 			}
 		}
 	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
+		fmt.Println(koPingP2P)
+		fmt.Println(reconnectingP2P)
 		generalMain()
 	}
 }
 
 func createAccount(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
+	if pingP2P == okC {
 		usedName := -1
 		for usedName == -1 {
-			fmt.Println("Introduce your new name:")
+			fmt.Println(login2Title1)
 			fmt.Print("> ")
 			stdReader := bufio.NewReader(os.Stdin)
 			sendData, err := stdReader.ReadString('\n')
 			if err != nil {
-				log.Printf(exceptionReader)
+				fmt.Printf(exceptionReader)
 				log.Fatal(err)
 			}
 			sendData = strings.Replace(sendData, "\n", "", -1)
 			usedName = searchAccountByName(sendData)
 			if usedName != -1 {
-				fmt.Println("Error. Name used. Choose other.")
+				fmt.Println(errorCreateAccount)
 			} else {
 				bank = insertAccount(sendData, bank)
 
-				fmt.Println("Succesfully creating account!")
+				fmt.Println(login2Title2)
+				fmt.Println(login2Title3)
 				toStringAccount()
 				logged = true
 				loggedActions(rw, stdReader)
 			}
 		}
 	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
+		fmt.Println(koPingP2P)
+		fmt.Println(reconnectingP2P)
 		generalMain()
 	}
 }
@@ -214,7 +216,7 @@ func loggedActions(rw *bufio.ReadWriter, stdReader *bufio.Reader) {
 			showMenu2()
 			sendData, err := stdReader.ReadString('\n')
 			if err != nil {
-				log.Printf(exceptionReader)
+				fmt.Printf(exceptionReader)
 				log.Fatal(err)
 			}
 			sendData = strings.Replace(sendData, "\n", "", -1)
@@ -254,7 +256,7 @@ func mainActions(rw *bufio.ReadWriter) bool {
 		showMenu1()
 		sendData, err := stdReader.ReadString('\n')
 		if err != nil {
-			log.Printf(exceptionReader)
+			fmt.Printf(exceptionReader)
 			log.Fatal(err)
 		}
 		sendData = strings.Replace(sendData, "\n", "", -1)
@@ -285,6 +287,7 @@ func mainActions(rw *bufio.ReadWriter) bool {
 
 func restartAmountBank() {
 	for i := 0; i < len(bank); i++ {
-		bank[i].Amount = 100
+		bank[i].Amount = initAmountAccount
 	}
+	account.Amount = initAmountAccount
 }

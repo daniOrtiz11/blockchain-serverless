@@ -53,16 +53,19 @@ type LocalP2P struct {
 // Blockchain is a series of validated Blocks
 var Blockchain []Block
 
-// Bank is a example
+// Bank is a series of Accounts
 var bank []Account
 
+//local p2p dir
 var localP2P LocalP2P
 
+//local account
 var account Account
 
 var mutex = &sync.Mutex{}
 
 var targetP2P string
+
 var listenF *int
 var seed *int64
 
@@ -72,9 +75,9 @@ func main() {
 	t := time.Now()
 	genesisBlock := Block{}
 	var transaction Transaction
-	transaction.Amount = -2
-	transaction.SourceID = "sourceGenesis"
-	transaction.TargetID = "targetGenesis"
+	transaction.Amount = initAmount
+	transaction.SourceID = initSource
+	transaction.TargetID = initTarget
 
 	genesisBlock = Block{0, t.String(), transaction, calculateHash(genesisBlock), ""}
 
@@ -89,10 +92,10 @@ func main() {
 	flag.Parse()
 
 	if *listenF == 0 {
-		log.Fatal(badFormatArgument)
-	} else {
-		generalMain()
+		*listenF = defaultPort
+		fmt.Println(defaultPortStr)
 	}
+	generalMain()
 }
 
 func generalMain() {
@@ -105,8 +108,8 @@ func generalMain() {
 	}
 
 	if targetP2P == "" {
-		log.Println(cmdInitialNode)
-		log.Println(cmdInitialNode2)
+		fmt.Println(cmdInitialNode)
+		fmt.Println(cmdInitialNode2)
 		// Set a stream handler on host A. /p2p/1.0.0 is
 		// a user-defined protocol name.
 
@@ -122,10 +125,12 @@ func generalMain() {
 		ha.SetStreamHandler(p2p, handleStream)
 		fmt.Println(startingSetP2P)
 		ping := getPingP2P()
-		if ping != "ok" {
+		if ping != okC {
 			setTargetP2P()
 		} else {
-			log.Fatal(errorDirRepeat)
+			fmt.Println(errorDirRepeat)
+			log.Fatal(helpRunning)
+
 		}
 		select {} // hang forever
 		/**** This is where the listener code ends ****/
@@ -157,21 +162,22 @@ func generalMain() {
 		// so LibP2P knows how to contact it
 		ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
 
-		log.Println(cmdClientNode)
+		fmt.Println(cmdClientNode)
 		// make a new stream from host B to host A
 		// it should be handled on host A by the handler we set above because
 		// we use the same /p2p/1.0.0 protocol
 		s, err := ha.NewStream(context.Background(), peerid, p2p)
 		if err != nil {
-			log.Fatal(errorDirRepeat)
-			log.Fatalln(err)
+			fmt.Println(errorDirRepeat)
+			log.Fatal(helpRunning)
 		}
 		fmt.Println(startingSetP2P)
 		ping := getPingP2P()
-		if ping != "ok" {
+		if ping != okC {
 			setTargetP2P()
 		} else {
-			log.Fatal(errorDirRepeat)
+			fmt.Println(errorDirRepeat)
+			log.Fatal(helpRunning)
 		}
 		fmt.Println(startedSetP2P)
 		// Create a buffered stream so that read and writes are non blocking.
