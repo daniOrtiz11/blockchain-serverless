@@ -54,7 +54,7 @@ type LocalP2P struct {
 var Blockchain []Block
 
 // Bank is a series of Accounts
-var bank []Account
+var Bank []Account
 
 //local p2p dir
 var localP2P LocalP2P

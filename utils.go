@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func bytestofile(b []byte) {
+func bytestofile(b []byte, localfile string) {
 	f, err := os.Create(localfile)
 	check(err)
 	defer f.Close()

@@ -3,9 +3,6 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
-	"log"
 	"time"
 )
 
@@ -30,8 +27,8 @@ func calculateHashAccount(seed string) string {
 
 func searchAccountByName(name string) int {
 	iacc := -1
-	for i := 0; i < len(bank); i++ {
-		if bank[i].Name == name {
+	for i := 0; i < len(Bank); i++ {
+		if Bank[i].Name == name {
 			iacc = i
 		}
 	}
@@ -40,8 +37,8 @@ func searchAccountByName(name string) int {
 
 func searchAccountByPublicKey(key string) int {
 	iacc := -1
-	for i := 0; i < len(bank); i++ {
-		if bank[i].PublicID == key {
+	for i := 0; i < len(Bank); i++ {
+		if Bank[i].PublicID == key {
 			iacc = i
 		}
 	}
@@ -51,8 +48,8 @@ func searchAccountByPublicKey(key string) int {
 func searchAccountByPrivKey(privateKey string) int {
 	var iacc int
 	iacc = -1
-	for i := 0; i < len(bank); i++ {
-		if bank[i].PrivateID == privateKey {
+	for i := 0; i < len(Bank); i++ {
+		if Bank[i].PrivateID == privateKey {
 			iacc = i
 		}
 	}
@@ -110,6 +107,7 @@ func updateBlc(chain []Block, Blockchain []Block) []Block {
 		diflen := len(chain)
 		Blockchain = chain
 		updateBank(diflen, chain)
+		//prepareUpload(1)
 	}
 	return Blockchain
 }
@@ -125,20 +123,20 @@ func updateBank(newMovs int, chain []Block) {
 				var acc Account
 				acc.PublicID = t.SourceID
 				acc.Amount = initAmountAccount
-				bank = append(bank, acc)
+				Bank = append(Bank, acc)
 				indexSource = searchAccountByPublicKey(t.SourceID)
 			}
 			if t.Amount == createAmountName {
-				bank[indexSource].Name = t.TargetID
+				Bank[indexSource].Name = t.TargetID
 			} else if t.Amount == createAmountPriv {
-				bank[indexSource].PrivateID = t.TargetID
+				Bank[indexSource].PrivateID = t.TargetID
 			} else {
 				indexTarget := searchAccountByPublicKey(t.TargetID)
-				bank[indexSource].Amount = bank[indexSource].Amount - t.Amount
-				bank[indexTarget].Amount = bank[indexTarget].Amount + t.Amount
-				if account.PublicID == bank[indexTarget].PublicID {
+				Bank[indexSource].Amount = Bank[indexSource].Amount - t.Amount
+				Bank[indexTarget].Amount = Bank[indexTarget].Amount + t.Amount
+				if account.PublicID == Bank[indexTarget].PublicID {
 					account.Amount = account.Amount + t.Amount
-				} else if account.PublicID == bank[indexSource].PublicID {
+				} else if account.PublicID == Bank[indexSource].PublicID {
 					account.Amount = account.Amount - t.Amount
 				}
 			}
@@ -146,9 +144,9 @@ func updateBank(newMovs int, chain []Block) {
 	}
 }
 
-func updateGlobal(bytes []byte) {
-	bytestofile(bytes)
-	uploadfile()
+func updateGlobal(bytestoUpload []byte, localfile string, bucketfile string) {
+	bytestofile(bytestoUpload, localfile)
+	uploadfile(localfile, bucketfile)
 }
 
 func insertBlc(transaction Transaction, Blockchain []Block) []Block {
@@ -157,15 +155,7 @@ func insertBlc(transaction Transaction, Blockchain []Block) []Block {
 		mutex.Lock()
 		Blockchain = append(Blockchain, newBlock)
 		updateBankByTransaction(transaction)
-		bytes, err := json.MarshalIndent(Blockchain, "", "  ")
-		if err != nil {
-			fmt.Print(exceptionJSON)
-			log.Fatal(err)
-		}
-		debug := false
-		if debug == true {
-			updateGlobal(bytes)
-		}
+		prepareUpload(0)
 		mutex.Unlock()
 	}
 	return Blockchain
@@ -173,7 +163,7 @@ func insertBlc(transaction Transaction, Blockchain []Block) []Block {
 
 func isUserInBank(id string) bool {
 	ok := false
-	for _, u := range bank {
+	for _, u := range Bank {
 		if u.PublicID == id {
 			ok = true
 		}
@@ -183,7 +173,7 @@ func isUserInBank(id string) bool {
 
 func getUserByID(id string) Account {
 	var us Account
-	for _, u := range bank {
+	for _, u := range Bank {
 		if u.PublicID == id {
 			us = u
 		}
@@ -204,7 +194,7 @@ func updateBankByTransaction(t Transaction) {
 	iT := 0
 	index := 0
 	if t.Amount > 0 {
-		for _, ac := range bank {
+		for _, ac := range Bank {
 			if ac.PublicID == t.SourceID {
 				iS = index
 			} else if ac.PublicID == t.TargetID {
@@ -212,7 +202,8 @@ func updateBankByTransaction(t Transaction) {
 			}
 			index++
 		}
-		bank[iS].Amount = bank[iS].Amount - t.Amount
-		bank[iT].Amount = bank[iT].Amount + t.Amount
+		Bank[iS].Amount = Bank[iS].Amount - t.Amount
+		Bank[iT].Amount = Bank[iT].Amount + t.Amount
+		prepareUpload(1)
 	}
 }

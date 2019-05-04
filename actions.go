@@ -37,8 +37,8 @@ func viewBank(rw *bufio.ReadWriter) {
 	if pingP2P == okC {
 		fmt.Println(options4Ttile1)
 		mutex.Lock()
-		for i := 0; i < len(bank); i++ {
-			acc := bank[i]
+		for i := 0; i < len(Bank); i++ {
+			acc := Bank[i]
 			index := i + 1
 			fmt.Println(strconv.Itoa(index) + ". " + acc.Name + " " + strconv.Itoa(acc.Amount) + " " + string(acc.PublicID))
 		}
@@ -126,6 +126,7 @@ func insertBlock() {
 		t.TargetID = userTarget.PublicID
 		account.Amount = account.Amount - t.Amount
 		Blockchain = insertBlc(t, Blockchain)
+		prepareUpload(0)
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
@@ -143,6 +144,7 @@ func insertAccountBlock(newac Account) {
 	t.SourceID = newac.PublicID
 	t.TargetID = newac.PrivateID
 	Blockchain = insertBlc(t, Blockchain)
+	prepareUpload(0)
 }
 
 func login(rw *bufio.ReadWriter) {
@@ -162,7 +164,7 @@ func login(rw *bufio.ReadWriter) {
 			if iacc == -1 {
 				fmt.Println(errorLogin)
 			} else {
-				account = bank[iacc]
+				account = Bank[iacc]
 				logged = true
 				fmt.Println(welcomeLogged + account.Name + "!")
 				loggedActions(rw, stdReader)
@@ -193,8 +195,8 @@ func createAccount(rw *bufio.ReadWriter) {
 			if usedName != -1 {
 				fmt.Println(errorCreateAccount)
 			} else {
-				bank = insertAccount(sendData, bank)
-
+				Bank = insertAccount(sendData, Bank)
+				prepareUpload(1)
 				fmt.Println(login2Title2)
 				fmt.Println(login2Title3)
 				toStringAccount()
@@ -286,8 +288,8 @@ func mainActions(rw *bufio.ReadWriter) bool {
 }
 
 func restartAmountBank() {
-	for i := 0; i < len(bank); i++ {
-		bank[i].Amount = initAmountAccount
+	for i := 0; i < len(Bank); i++ {
+		Bank[i].Amount = initAmountAccount
 	}
 	account.Amount = initAmountAccount
 }

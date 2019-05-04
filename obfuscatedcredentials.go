@@ -3,7 +3,8 @@ package main
 //AWS CONSTANTS:
 
 const bucketname string = "XXXX"
-const bucketfile string = "XXXX"
+const bucketfileblc string = "XXXX"
+const bucketfilebank string = "XXXX"
 const idiam string = "XXXX"
 const secretiam string = "XXXX"
 const regionaws string = "XXXX"

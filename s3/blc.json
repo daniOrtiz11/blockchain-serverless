@@ -1,16 +1,35 @@
 [
   {
     "Index": 0,
-    "Timestamp": "2019-03-30 19:33:11.615776 +0100 CET m=+0.021378407",
-    "CustomValue": 0,
-    "Hash": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7",
+    "Timestamp": "2019-05-04 17:24:13.622752 +0200 CEST m=+0.020140051",
+    "Transaction": {
+      "SourceID": "sourceGenesis",
+      "TargetID": "targetGenesis",
+      "Amount": -2
+    },
+    "Hash": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
     "PrevHash": ""
   },
   {
     "Index": 1,
-    "Timestamp": "2019-03-30 19:34:28.268148 +0100 CET m=+76.672143959",
-    "CustomValue": 123,
-    "Hash": "02b3c837ff3fcd6e6ec3bf80b2655aae8a3af4ae0e739c1b768ea223437872ee",
-    "PrevHash": "96a296d224f285c67bee93c30f8a309157f0daa35dc5b87e410b78630a09cfc7"
+    "Timestamp": "2019-05-04 17:24:21.560059 +0200 CEST m=+7.957359749",
+    "Transaction": {
+      "SourceID": "c5a8d95238cd3ee8c28a86b7ef8553a7c27ac016577c7717b52c69fa4f721b7f",
+      "TargetID": "Tony",
+      "Amount": -1
+    },
+    "Hash": "313938eff8df59f72061db6cd43fddd14ae81f332db1a022dc99ab136c44575a",
+    "PrevHash": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d"
+  },
+  {
+    "Index": 2,
+    "Timestamp": "2019-05-04 17:24:22.644719 +0200 CEST m=+9.042007283",
+    "Transaction": {
+      "SourceID": "c5a8d95238cd3ee8c28a86b7ef8553a7c27ac016577c7717b52c69fa4f721b7f",
+      "TargetID": "4ff8adf4fc1351091874746272afd53133ba362c77d442e7fcd6d8653d9c6547",
+      "Amount": 0
+    },
+    "Hash": "2e2e5cfcad2bb5eec01c1ab08d236d22efbbc09f4018c960e46b2bf2148d7570",
+    "PrevHash": "313938eff8df59f72061db6cd43fddd14ae81f332db1a022dc99ab136c44575a"
   }
 ]
