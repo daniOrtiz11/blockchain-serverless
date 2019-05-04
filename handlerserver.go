@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	crypto "gx/ipfs/QmTW4SdgBWq9GjsBsHeUx8WuGxzhgzAf88UMH2w62PC8yK/go-libp2p-crypto"
 	ma "gx/ipfs/QmTZBfrPJmjWsCvHEtX5FE6KimVJhsJg5sBbqEFYf4UZtL/go-multiaddr"
@@ -12,7 +13,10 @@ import (
 	"io"
 	"log"
 	mrand "math/rand"
+	"os"
+	"os/signal"
 	"strings"
+	"time"
 
 	libp2p "github.com/libp2p/go-libp2p"
 )
@@ -56,7 +60,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		opts: address, identity to new connect between peer.
 	*/
 
-	addrstr := fmt.Sprintf("/ip4/127.0.0.1/tcp/%d", listenPort)
+	addrstr := fmt.Sprintf(iplocalhost, listenPort)
 	//addrstr := fmt.Sprintf("/ip4/192.168.1.135/tcp/%d", listenPort)
 	//addrstr := fmt.Sprintf("/ip4/81.0.3.81/tcp/%d", listenPort)
 	//addrstr := fmt.Sprintf("/ip4/0.0.0.0/tcp/%d", listenPort)
@@ -114,7 +118,7 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 func getTargetP2P() string {
 	target := generalLambda(arnFuncGetP2P, "")
 	targetParser := ""
-	if target != "" && target != "empty" {
+	if target != "" && target != emptyC {
 		targetParser = parserTarget(target)
 	}
 	return targetParser
@@ -122,11 +126,11 @@ func getTargetP2P() string {
 
 func getPingP2P() string {
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	paramClientP2P := initParam + clientP2P + "\"}"
 	ping := generalLambda(arnFuncPingP2P, paramClientP2P)
-	pingResult := "ko"
-	if ping == "ok" {
-		pingResult = "ok"
+	pingResult := koC
+	if ping == okC {
+		pingResult = okC
 	}
 	return pingResult
 }
@@ -134,11 +138,11 @@ func getPingP2P() string {
 func setTargetP2P() {
 	//ip:port:key
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	paramClientP2P := initParam + clientP2P + "\"}"
 	resp := generalLambda(arnFuncSetP2P, paramClientP2P)
-	if resp == "ok" {
+	if resp == okC {
 		setTargetP2P()
-	} else if resp == "ko" {
+	} else if resp == koC {
 		log.Fatal(errorSetP2P)
 	}
 }
@@ -146,30 +150,73 @@ func setTargetP2P() {
 func deleteTargetP2P(needCheck bool) {
 	//ip:port:key
 	clientP2P := localP2P.Ipdir + "/" + localP2P.Port + "/" + localP2P.Key + "/" + localP2P.PrevKey
-	paramClientP2P := "{\"newnode\": \"" + clientP2P + "\"}"
+	paramClientP2P := initParam + clientP2P + "\"}"
 	resp := generalLambda(arnFuncDeleteP2P, paramClientP2P)
-	if resp == "ok" {
+	if resp == okC {
 		ping := getPingP2P()
-		if ping == "ok" && needCheck == true {
+		if ping == okC && needCheck == true {
 			deleteTargetP2P(false)
 		}
-	} else if resp == "ko" {
+	} else if resp == koC {
 		log.Fatal(errorDeleteP2P)
 	}
-	//ok or ko
 }
 
-func parserLocalP2P(fullstr string) {
-	splitFull := strings.Split(fullstr, "/")
-	localP2P.Ipdir = splitFull[2]
-	localP2P.Port = splitFull[4]
-	localP2P.Key = splitFull[6]
+func readData(rw *bufio.ReadWriter) {
+	for {
+		str, err := rw.ReadString('\n')
+		if err != nil || str == "" {
+			return
+		} else if str != "\n" {
+			chain := make([]Block, 0)
+			if err := json.Unmarshal([]byte(str), &chain); err != nil {
+				fmt.Printf(exceptionJSON)
+				log.Fatal(err)
+			}
+			mutex.Lock()
+			//Updating blc from broadcast
+			Blockchain = updateBlc(chain, Blockchain)
+			mutex.Unlock()
+		}
+	}
 }
 
-func parserTarget(target string) string {
-	target = strings.Replace(target, "\"", "", -1)
-	splitFull := strings.Split(target, ":")
-	localP2P.PrevKey = splitFull[2]
-	localTarget := ipv4_2 + splitFull[0] + tcp2 + splitFull[1] + ipfs2 + splitFull[2]
-	return localTarget
+func writeData(rw *bufio.ReadWriter) {
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			closeCon()
+			log.Fatalln(sig)
+		}
+	}()
+
+	go func() {
+		for {
+			time.Sleep(5 * time.Second)
+			mutex.Lock()
+			bytes, err := json.Marshal(Blockchain)
+			if err != nil {
+				fmt.Printf(exceptionJSON)
+				fmt.Println(err)
+			}
+			mutex.Unlock()
+			//print blockchain
+			//spew.Dump(Blockchain)
+			mutex.Lock()
+			//sending blockchain to broadcast
+			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
+			rw.Flush()
+			mutex.Unlock()
+
+		}
+	}()
+
+	for {
+		inOk := false
+		for inOk == false {
+			inOk = mainActions(rw)
+		}
+	}
 }

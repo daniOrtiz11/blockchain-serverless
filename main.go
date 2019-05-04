@@ -3,14 +3,11 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -19,17 +16,30 @@ import (
 	pstore "gx/ipfs/QmaCTz9RkrU13bm9kMB54f7atgqM4qkjDZpRwRoJiWXEqs/go-libp2p-peerstore"
 	golog "gx/ipfs/QmbkT7eMTyXfpeyB3ZMxxcxg7XH8t6uXp49jqzz4HB7BGF/go-log"
 	gologging "gx/ipfs/QmcaSwFc5RBg8yCq54QURwEU4nwjfCpjbpmaAm4VbdGLKv/go-logging"
-
-	"github.com/davecgh/go-spew/spew"
 )
 
-// Block represents each 'item' in the blockchain
+// Block represents each 'item' in the Blockchain
 type Block struct {
 	Index       int
 	Timestamp   string
-	CustomValue int
+	Transaction Transaction
 	Hash        string
 	PrevHash    string
+}
+
+// Account struct
+type Account struct {
+	PublicID  string
+	PrivateID string
+	Name      string
+	Amount    int
+}
+
+//Transaction struct
+type Transaction struct {
+	SourceID string
+	TargetID string
+	Amount   int
 }
 
 //LocalP2P host ip, port and key
@@ -43,112 +53,54 @@ type LocalP2P struct {
 // Blockchain is a series of validated Blocks
 var Blockchain []Block
 
+// Bank is a series of Accounts
+var Bank []Account
+
+//local p2p dir
 var localP2P LocalP2P
+
+//local account
+var account Account
 
 var mutex = &sync.Mutex{}
 
-func readData(rw *bufio.ReadWriter) {
-	for {
-		str, err := rw.ReadString('\n')
-		if err != nil || str == "" {
-			return
-		} else if str != "\n" {
-			chain := make([]Block, 0)
-			if err := json.Unmarshal([]byte(str), &chain); err != nil {
-				log.Printf(exceptionJSON)
-				log.Fatal(err)
-			}
-			mutex.Lock()
-			//Updating blc from broadcast
-			Blockchain = updateBlc(chain, Blockchain)
-			mutex.Unlock()
-		}
-	}
-}
+var targetP2P string
 
-func writeData(rw *bufio.ReadWriter) {
+var listenF *int
+var seed *int64
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for sig := range c {
-			closeCon()
-			log.Fatalln(sig)
-		}
-	}()
-
-	go func() {
-		for {
-			time.Sleep(5 * time.Second)
-			mutex.Lock()
-			bytes, err := json.Marshal(Blockchain)
-			if err != nil {
-				log.Printf(exceptionJSON)
-				log.Println(err)
-			}
-			mutex.Unlock()
-			mutex.Lock()
-			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-			rw.Flush()
-			mutex.Unlock()
-
-		}
-	}()
-
-	stdReader := bufio.NewReader(os.Stdin)
-
-	for {
-		inOk := false
-		for inOk == false {
-			showHelp()
-			sendData, err := stdReader.ReadString('\n')
-			if err != nil {
-				log.Printf(exceptionReader)
-				log.Fatal(err)
-			}
-			sendData = strings.Replace(sendData, "\n", "", -1)
-			option, err := strconv.Atoi(sendData)
-			if err == nil {
-				switch option {
-				case 1:
-					viewState(rw)
-					inOk = true
-				case 2:
-					insertBlock()
-					inOk = true
-				case 3:
-					closeCon()
-					inOk = true
-				default:
-					fmt.Println(badFormatOption)
-				}
-			} else {
-				fmt.Println(badFormatNumber)
-			}
-		}
-	}
-}
+var logged bool
 
 func main() {
 	t := time.Now()
 	genesisBlock := Block{}
-	genesisBlock = Block{0, t.String(), 0, calculateHash(genesisBlock), ""}
+	var transaction Transaction
+	transaction.Amount = initAmount
+	transaction.SourceID = initSource
+	transaction.TargetID = initTarget
+
+	genesisBlock = Block{0, t.String(), transaction, calculateHash(genesisBlock), ""}
 
 	Blockchain = append(Blockchain, genesisBlock)
 
 	golog.SetAllLoggers(gologging.INFO) // Change to DEBUG for extra info
 	//golog.SetAllLoggers(gologging.DEBUG) // Change to DEBUG for extra info
 
-	targetP2P := getTargetP2P()
 	// Parse options from the command line
-	listenF := flag.Int(flagL, 0, "")
-	seed := flag.Int64(flagSeed, 0, "")
+	listenF = flag.Int(flagL, 0, "")
+	seed = flag.Int64(flagSeed, 0, "")
 	flag.Parse()
 
 	if *listenF == 0 {
-		log.Fatal(badFormatArgument)
+		*listenF = defaultPort
+		fmt.Println(defaultPortStr)
 	}
+	generalMain()
+}
 
+func generalMain() {
+	logged = false
+	targetP2P = getTargetP2P()
 	// Make a host that listens on the given multiaddress
 	ha, err := makeBasicHost(*listenF, *seed)
 	if err != nil {
@@ -156,8 +108,8 @@ func main() {
 	}
 
 	if targetP2P == "" {
-		log.Println(cmdInitialNode)
-		log.Println(cmdInitialNode2)
+		fmt.Println(cmdInitialNode)
+		fmt.Println(cmdInitialNode2)
 		// Set a stream handler on host A. /p2p/1.0.0 is
 		// a user-defined protocol name.
 
@@ -173,12 +125,13 @@ func main() {
 		ha.SetStreamHandler(p2p, handleStream)
 		fmt.Println(startingSetP2P)
 		ping := getPingP2P()
-		if ping != "ok" {
+		if ping != okC {
 			setTargetP2P()
 		} else {
-			log.Fatal(errorDirRepeat)
+			fmt.Println(errorDirRepeat)
+			log.Fatal(helpRunning)
+
 		}
-		fmt.Println(startedSetP2P)
 		select {} // hang forever
 		/**** This is where the listener code ends ****/
 	} else {
@@ -209,21 +162,22 @@ func main() {
 		// so LibP2P knows how to contact it
 		ha.Peerstore().AddAddr(peerid, targetAddr, pstore.PermanentAddrTTL)
 
-		log.Println(cmdClientNode)
+		fmt.Println(cmdClientNode)
 		// make a new stream from host B to host A
 		// it should be handled on host A by the handler we set above because
 		// we use the same /p2p/1.0.0 protocol
 		s, err := ha.NewStream(context.Background(), peerid, p2p)
 		if err != nil {
-			log.Fatal(errorDirRepeat)
-			log.Fatalln(err)
+			fmt.Println(errorDirRepeat)
+			log.Fatal(helpRunning)
 		}
 		fmt.Println(startingSetP2P)
 		ping := getPingP2P()
-		if ping != "ok" {
+		if ping != okC {
 			setTargetP2P()
 		} else {
-			log.Fatal(errorDirRepeat)
+			fmt.Println(errorDirRepeat)
+			log.Fatal(helpRunning)
 		}
 		fmt.Println(startedSetP2P)
 		// Create a buffered stream so that read and writes are non blocking.
@@ -235,59 +189,5 @@ func main() {
 
 		select {} // hang forever
 
-	}
-}
-
-func showHelp() {
-	fmt.Println(optionsTitle)
-	fmt.Println(options1)
-	fmt.Println(options2)
-	fmt.Println(options3)
-	fmt.Print("> ")
-}
-
-func viewState(rw *bufio.ReadWriter) {
-	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
-		fmt.Println(options1Title)
-		bytes, err := json.Marshal(Blockchain)
-		if err != nil {
-			log.Println(err)
-		}
-		spew.Dump(Blockchain)
-		mutex.Lock()
-		rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
-		rw.Flush()
-		mutex.Unlock()
-	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
-	}
-}
-
-func closeCon() {
-	deleteTargetP2P(true)
-	log.Fatal(endMessage)
-}
-
-func insertBlock() {
-	pingP2P := getPingP2P()
-	if pingP2P == "ok" {
-		fmt.Println(options2Title)
-		fmt.Print("> ")
-		stdReader := bufio.NewReader(os.Stdin)
-		sendData, err := stdReader.ReadString('\n')
-		if err != nil {
-			log.Printf(exceptionReader)
-			log.Fatal(err)
-		}
-		sendData = strings.Replace(sendData, "\n", "", -1)
-		customvalue, err := strconv.Atoi(sendData)
-		if err == nil {
-			Blockchain = insertBlc(customvalue, Blockchain)
-		}
-	} else {
-		log.Println(koPingP2P)
-		log.Println(reconnectingP2P)
 	}
 }

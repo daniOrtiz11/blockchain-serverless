@@ -23,15 +23,14 @@ func getCredentials() *session.Session {
 	return sess
 }
 
-func uploadfile() {
-
+func uploadfile(localfile string, bucketfile string) {
 	sess := getCredentials()
 	// Create an uploader with the session and default options
 	uploader := s3manager.NewUploader(sess)
 	filename := localfile
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Printf(fileOpenError, filename, err)
+		fmt.Printf(fileOpenError, filename, err)
 	}
 
 	// Upload the file to S3.
@@ -41,9 +40,10 @@ func uploadfile() {
 		Body:   f,
 	})
 	if err != nil {
-		log.Printf(fileUploadError, err)
+		fmt.Printf(fileUploadError, err)
+	} else if result.Location == "" {
+		fmt.Printf(fileUploadError2, bucketfile)
 	}
-	fmt.Printf(fileUploadError2, result.Location)
 }
 
 func generalLambda(funcName string, funcParams string) string {
@@ -54,8 +54,8 @@ func generalLambda(funcName string, funcParams string) string {
 	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(funcName),
-		InvocationType: aws.String("RequestResponse"),
-		LogType:        aws.String("Tail"),
+		InvocationType: aws.String(responseParam),
+		LogType:        aws.String(logParam),
 		Payload:        bytespayload,
 	}
 
@@ -128,17 +128,40 @@ func generalLambda(funcName string, funcParams string) string {
 			body = value.(string)
 		default:
 			println(v)
-			log.Fatal("Error in parser type resp aws")
+			log.Fatal(errorRespAws)
 		}
 	}
 	if statusCode != 0 && body != "" {
 		if statusCode == 200 || statusCode == 201 || statusCode == 202 {
 			resp = body
 		} else {
-			resp = "ko"
+			resp = koC
 			fmt.Println(awsError)
 		}
 	}
 
 	return resp
+}
+
+//0 - blc
+//1 - bank
+func prepareUpload(toUpload int) {
+	debug := false
+	if debug == false {
+		if toUpload == 0 {
+			bytes, err := json.MarshalIndent(Blockchain, "", "  ")
+			if err != nil {
+				fmt.Print(exceptionJSON)
+				log.Fatal(err)
+			}
+			updateGlobal(bytes, localfileblc, bucketfileblc)
+		} else if toUpload == 1 {
+			bytes, err := json.MarshalIndent(Bank, "", "  ")
+			if err != nil {
+				fmt.Print(exceptionJSON)
+				log.Fatal(err)
+			}
+			updateGlobal(bytes, localfilebank, bucketfilebank)
+		}
+	}
 }
