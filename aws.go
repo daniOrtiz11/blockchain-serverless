@@ -14,18 +14,37 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-func uploadfile() {
+/*
+DEPENDENCIES:
+You need to create an execution role with the IAM service.
+The role must have the following properties:
+1. Trusted entity: AWS Lambda.
+2. Permissions: AWSLambdaExecute.
+*/
+
+/*
+Func to set credentials to AWS
+*/
+func getCredentials() *session.Session {
 	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: AnonymousCredentials,
 		Region:      aws.String(regionaws),
 	}))
+	return sess
+}
+
+/*
+Func to uploadFile to AWS
+*/
+func uploadfile(localfile string, bucketfile string) {
+	sess := getCredentials()
 	// Create an uploader with the session and default options
 	uploader := s3manager.NewUploader(sess)
 	filename := localfile
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Printf("failed to open file %q, %v", filename, err)
+		fmt.Printf(fileOpenError, filename, err)
 	}
 
 	// Upload the file to S3.
@@ -35,61 +54,31 @@ func uploadfile() {
 		Body:   f,
 	})
 	if err != nil {
-		log.Printf("failed to upload file, %v", err)
+		fmt.Printf(fileUploadError, err)
+	} else if result.Location == "" {
+		fmt.Printf(fileUploadError2, bucketfile)
 	}
-	fmt.Printf("file uploaded to, %s\n", result.Location)
 }
 
-func uploadvar() {
-	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
-	sess := session.Must(session.NewSession(&aws.Config{
-		Credentials: AnonymousCredentials,
-		Region:      aws.String(regionaws),
-	}))
-	// Create an uploader with the session and default options
-	uploader := s3manager.NewUploader(sess)
-	filename := bucketfile
-	f, err := os.Open(filename)
-	if err != nil {
-		log.Printf("failed to open file %q, %v", filename, err)
-	}
-
-	// Upload the file to S3.
-	result, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(bucketname),
-		Key:    aws.String(bucketfile),
-		Body:   f,
-	})
-	if err != nil {
-		log.Printf("failed to upload file, %v", err)
-	}
-	fmt.Printf("file uploaded to, %s\n", result.Location)
-}
-
-func uploadkey() {
-	/*
-		TODO:
-	*/
-}
-
-func testLambda() {
-	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
-	sess := session.Must(session.NewSession(&aws.Config{
-		Credentials: AnonymousCredentials,
-		Region:      aws.String(regionaws),
-	}))
-	//arn:aws:lambda:us-east-2:232249444435:function:testFuncLambda
+/*
+Main function to run Lambda Function
+*/
+func generalLambda(funcName string, funcParams string) string {
+	resp := ""
+	sess := getCredentials()
 	svc := lambda.New(sess)
-
+	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
-		FunctionName:   aws.String(arnFunGetaws),
-		InvocationType: aws.String("RequestResponse"),
-		LogType:        aws.String("Tail"),
+		FunctionName:   aws.String(funcName),
+		InvocationType: aws.String(responseParam),
+		LogType:        aws.String(logParam),
+		Payload:        bytespayload,
 	}
 
 	result, err := svc.Invoke(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
+			//check errors
 			switch aerr.Code() {
 			case lambda.ErrCodeServiceException:
 				fmt.Println(lambda.ErrCodeServiceException, aerr.Error())
@@ -137,27 +126,63 @@ func testLambda() {
 		} else {
 			fmt.Println(err.Error())
 		}
-		return
+		return ""
 	}
+	//parser result from AWS
 	s := string(result.Payload)
 	mapBody := make(map[string]interface{})
 	err2 := json.Unmarshal([]byte(s), &mapBody)
 	if err2 != nil {
-		log.Fatal("err to get response from aws")
+		log.Fatal(awsError)
 	}
-	cont := 0
 	var statusCode float64
 	body := ""
+	statusCode = 0
 	for _, value := range mapBody {
-		if cont == 0 {
+		switch v := value.(type) {
+		case float64:
 			statusCode = value.(float64)
-		} else if cont == 1 {
+		case string:
 			body = value.(string)
+		default:
+			println(v)
+			log.Fatal(errorRespAws)
 		}
-		cont++
+	}
+	if statusCode != 0 && body != "" {
+		if statusCode == 200 || statusCode == 201 || statusCode == 202 {
+			resp = body
+		} else {
+			resp = koC
+			fmt.Println(awsError)
+		}
 	}
 
-	fmt.Println(statusCode)
-	fmt.Println(body)
+	return resp
+}
 
+/*
+Func to prepare data before update
+toUpload = 0 -> Blockchain
+toUpload = 1 -> Bank
+*/
+func prepareUpload(toUpload int) {
+	debug := false
+	if debug == false {
+		if toUpload == 0 {
+			bytes, err := json.MarshalIndent(Blockchain, "", "  ")
+			if err != nil {
+				fmt.Print(exceptionJSON)
+				log.Fatal(err)
+			}
+			updateGlobal(bytes, localfileblc, bucketfileblc)
+		} else if toUpload == 1 {
+			bytes, err := json.MarshalIndent(Bank, "", "  ")
+			if err != nil {
+				fmt.Print(exceptionJSON)
+				log.Fatal(err)
+			}
+			updateGlobal(bytes, localfilebank, bucketfilebank)
+		}
+	}
 }
