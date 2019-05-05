@@ -12,6 +12,9 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
+/*
+Func to view Blockchain
+*/
 func viewState(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
 	if pingP2P == okC {
@@ -32,6 +35,9 @@ func viewState(rw *bufio.ReadWriter) {
 	}
 }
 
+/*
+Func to view Bank
+*/
 func viewBank(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
 	if pingP2P == okC {
@@ -50,6 +56,9 @@ func viewBank(rw *bufio.ReadWriter) {
 	}
 }
 
+/*
+Func to view your account
+*/
 func viewAccountState(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
 	if pingP2P == okC {
@@ -64,11 +73,17 @@ func viewAccountState(rw *bufio.ReadWriter) {
 	}
 }
 
+/*
+Func to end session
+*/
 func closeCon() {
 	deleteTargetP2P(true)
 	log.Fatal(endMessage)
 }
 
+/*
+Func to do a transfer
+*/
 func insertBlock() {
 	pingP2P := getPingP2P()
 	if pingP2P == okC {
@@ -84,6 +99,7 @@ func insertBlock() {
 				log.Fatal(err)
 			}
 			sendData = strings.Replace(sendData, "\n", "", -1)
+			//check if is a number
 			amount, err := strconv.Atoi(sendData)
 			if err == nil {
 				if amount < account.Amount {
@@ -109,6 +125,7 @@ func insertBlock() {
 			}
 			idUser := strings.Replace(sendData, "\n", "", -1)
 			if err == nil {
+				//check if target user exists
 				isUser = isUserInBank(idUser)
 				if !isUser {
 					fmt.Println(options3Title22)
@@ -120,12 +137,14 @@ func insertBlock() {
 			}
 		}
 		fmt.Println(options3Title3 + userTarget.Name)
+		//do transfer
 		var t Transaction
 		t.Amount = realAmount
 		t.SourceID = account.PublicID
 		t.TargetID = userTarget.PublicID
 		account.Amount = account.Amount - t.Amount
 		Blockchain = insertBlc(t, Blockchain)
+		//send to upload
 		prepareUpload(0)
 	} else {
 		fmt.Println(koPingP2P)
@@ -134,6 +153,9 @@ func insertBlock() {
 	}
 }
 
+/*
+Func to insert some blocks to create a new account
+*/
 func insertAccountBlock(newac Account) {
 	var t Transaction
 	t.Amount = createAmountName
@@ -147,6 +169,9 @@ func insertAccountBlock(newac Account) {
 	prepareUpload(0)
 }
 
+/*
+Func to login
+*/
 func login(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
 	if pingP2P == okC {
@@ -160,13 +185,16 @@ func login(rw *bufio.ReadWriter) {
 		}
 		privateKey := strings.Replace(sendData, "\n", "", -1)
 		if err == nil {
+			//check if privateKey exists
 			iacc := searchAccountByPrivKey(privateKey)
 			if iacc == -1 {
 				fmt.Println(errorLogin)
 			} else {
+				//set your account
 				account = Bank[iacc]
 				logged = true
 				fmt.Println(welcomeLogged + account.Name + "!")
+				//go to nexts actions
 				loggedActions(rw, stdReader)
 			}
 		}
@@ -177,6 +205,9 @@ func login(rw *bufio.ReadWriter) {
 	}
 }
 
+/*
+Func to create an Account
+*/
 func createAccount(rw *bufio.ReadWriter) {
 	pingP2P := getPingP2P()
 	if pingP2P == okC {
@@ -191,11 +222,13 @@ func createAccount(rw *bufio.ReadWriter) {
 				log.Fatal(err)
 			}
 			sendData = strings.Replace(sendData, "\n", "", -1)
+			//check if name exists in Bank
 			usedName = searchAccountByName(sendData)
 			if usedName != -1 {
 				fmt.Println(errorCreateAccount)
 			} else {
 				Bank = insertAccount(sendData, Bank)
+				//go to upload
 				prepareUpload(1)
 				fmt.Println(login2Title2)
 				fmt.Println(login2Title3)
@@ -211,6 +244,9 @@ func createAccount(rw *bufio.ReadWriter) {
 	}
 }
 
+/*
+Func to show logged actions. Only allow if user is logged
+*/
 func loggedActions(rw *bufio.ReadWriter, stdReader *bufio.Reader) {
 	for {
 		inOk := false
@@ -251,6 +287,9 @@ func loggedActions(rw *bufio.ReadWriter, stdReader *bufio.Reader) {
 	}
 }
 
+/*
+Func to show first actions. Only allow if user is not logged
+*/
 func mainActions(rw *bufio.ReadWriter) bool {
 	inOk := false
 	stdReader := bufio.NewReader(os.Stdin)

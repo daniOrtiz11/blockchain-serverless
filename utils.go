@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+/*
+Create a file from bytes
+*/
 func bytestofile(b []byte, localfile string) {
 	f, err := os.Create(localfile)
 	check(err)

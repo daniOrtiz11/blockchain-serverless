@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-// SHA256 hasing
+/*
+Func to calculate SHA256 hasing to hash and prevHash Block
+*/
 func calculateHash(block Block) string {
 	record := string(block.Index) + block.Timestamp + string(block.Transaction.SourceID+block.Transaction.TargetID) + block.PrevHash
 	h := sha256.New()
@@ -15,7 +17,9 @@ func calculateHash(block Block) string {
 	return hex.EncodeToString(hashed)
 }
 
-// SHA256 hasing
+/*
+Func to calculate SHA256 hasing to Account
+*/
 func calculateHashAccount(seed string) string {
 	record := string(seed)
 	h := sha256.New()
@@ -62,59 +66,65 @@ func genesisTransaction() Transaction {
 	return transaction
 }
 
-// make sure block is valid by checking index, and comparing the hash of the previous block
+/*
+Func to check newBlock is valid by checking index and hashes
+*/
 func isBlockValid(newBlock, oldBlock Block) bool {
+	valid := true
 	if oldBlock.Index+1 != newBlock.Index {
-		return false
+		valid = false
+	} else if oldBlock.Hash != newBlock.PrevHash {
+		valid = false
+	} else if calculateHash(newBlock) != newBlock.Hash {
+		valid = false
 	}
-
-	if oldBlock.Hash != newBlock.PrevHash {
-		return false
-	}
-
-	if calculateHash(newBlock) != newBlock.Hash {
-		return false
-	}
-
-	return true
+	return valid
 }
 
-// create a new block using previous block's hash
+/*
+Func to create a new Block
+*/
 func generateBlock(oldBlock Block, transaction Transaction) Block {
 	var newBlock Block
-	t := time.Now()
 	newBlock.Index = oldBlock.Index + 1
-	newBlock.Timestamp = t.String()
+	newBlock.Timestamp = time.Now().String()
 	newBlock.Transaction = transaction
 	newBlock.PrevHash = oldBlock.Hash
 	newBlock.Hash = calculateHash(newBlock)
 	return newBlock
 }
 
-// create a new block using previous block's hash
+/*
+Func to create a new Account
+*/
 func generateAccount(name string) Account {
 	var newAccount Account
 	newAccount.Name = name
 	newAccount.Amount = initAmountAccount
 	newAccount.PublicID = calculateHashAccount(name)
-	t := time.Now()
-	newAccount.PrivateID = calculateHashAccount(name + string(newAccount.PublicID) + t.String())
+	newAccount.PrivateID = calculateHashAccount(name + string(newAccount.PublicID) + time.Now().String())
 	return newAccount
 }
 
+/*
+Func to update Blockchain from streaming
+*/
 func updateBlc(chain []Block, Blockchain []Block) []Block {
 	if len(chain) > len(Blockchain) {
 		diflen := len(chain)
 		Blockchain = chain
 		updateBank(diflen, chain)
-		//prepareUpload(1)
 	}
 	return Blockchain
 }
 
+/*
+Func to update Bank from streaming
+*/
 func updateBank(newMovs int, chain []Block) {
 	i := 0
 	restartAmountBank()
+	//loop transactions
 	for i = 0; i < newMovs; i++ {
 		t := chain[i].Transaction
 		if t.Amount > -2 {
@@ -144,17 +154,24 @@ func updateBank(newMovs int, chain []Block) {
 	}
 }
 
+/*
+Send to save local file and upload to AWS
+*/
 func updateGlobal(bytestoUpload []byte, localfile string, bucketfile string) {
 	bytestofile(bytestoUpload, localfile)
 	uploadfile(localfile, bucketfile)
 }
 
+/*
+Func to insert new valid block into Blockchain
+*/
 func insertBlc(transaction Transaction, Blockchain []Block) []Block {
 	newBlock := generateBlock(Blockchain[len(Blockchain)-1], transaction)
 	if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
 		mutex.Lock()
 		Blockchain = append(Blockchain, newBlock)
 		updateBankByTransaction(transaction)
+		//send to update
 		prepareUpload(0)
 		mutex.Unlock()
 	}
@@ -181,6 +198,9 @@ func getUserByID(id string) Account {
 	return us
 }
 
+/*
+Func to insert new valid account into Bank
+*/
 func insertAccount(name string, bank []Account) []Account {
 	newAccount := generateAccount(name)
 	insertAccountBlock(newAccount)
@@ -189,6 +209,9 @@ func insertAccount(name string, bank []Account) []Account {
 	return bank
 }
 
+/*
+Func to update bank's amounts
+*/
 func updateBankByTransaction(t Transaction) {
 	iS := 0
 	iT := 0

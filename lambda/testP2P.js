@@ -1,3 +1,10 @@
+/*
+Lambda Function to test connections and type of responses
+*/
+
+/*
+Dummy:
+*/
 var obj = 
 [
   {
@@ -30,7 +37,9 @@ var obj =
   }
 ];
 
-
+/*
+Dummy:
+*/
 var key = "QmeDzSrU6q8AMrABJKNe9h7xKydit5rSu4BLPfWxdTvZtJ";
 console.log(obj);
 debugger;

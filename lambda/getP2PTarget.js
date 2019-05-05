@@ -1,15 +1,6 @@
 /*
-Need set role:
-Para crear un rol de ejecución
-    Abra la página Roles en la consola de IAM.
-    Elija Create role.
-    Cree un rol con las propiedades siguientes.
-        Trusted entity (Entidad de confianza) – AWS Lambda.
-        Permisos – AWSLambdaExecute.
-        Role name (Nombre de rol): lambda-s3-role.
+Func to get the next addr to be target in p2p network json
 */
-
-// dependencies
 var AWS = require('aws-sdk');
 var util = require('util');
 // get reference to S3 client 
@@ -20,8 +11,8 @@ exports.handler = async (event) => {
     var bucket = "blcserverworkbucket";
     var file = "p2pstate.json"
     var getParams = {
-    Bucket: bucket, // your bucket name,
-    Key: file // path to the object you're looking for
+    Bucket: bucket, 
+    Key: file 
     }
     return await s3.getObject(getParams).promise()
     .then((res) => {

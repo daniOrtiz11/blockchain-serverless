@@ -14,6 +14,17 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
+/*
+DEPENDENCIES:
+You need to create an execution role with the IAM service.
+The role must have the following properties:
+1. Trusted entity: AWS Lambda.
+2. Permissions: AWSLambdaExecute.
+*/
+
+/*
+Func to set credentials to AWS
+*/
 func getCredentials() *session.Session {
 	var AnonymousCredentials = credentials.NewStaticCredentials(idiam, secretiam, "")
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -23,6 +34,9 @@ func getCredentials() *session.Session {
 	return sess
 }
 
+/*
+Func to uploadFile to AWS
+*/
 func uploadfile(localfile string, bucketfile string) {
 	sess := getCredentials()
 	// Create an uploader with the session and default options
@@ -46,11 +60,13 @@ func uploadfile(localfile string, bucketfile string) {
 	}
 }
 
+/*
+Main function to run Lambda Function
+*/
 func generalLambda(funcName string, funcParams string) string {
 	resp := ""
 	sess := getCredentials()
 	svc := lambda.New(sess)
-	//funcParams = "keyblc:testparamformGO"
 	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(funcName),
@@ -62,6 +78,7 @@ func generalLambda(funcName string, funcParams string) string {
 	result, err := svc.Invoke(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
+			//check errors
 			switch aerr.Code() {
 			case lambda.ErrCodeServiceException:
 				fmt.Println(lambda.ErrCodeServiceException, aerr.Error())
@@ -111,6 +128,7 @@ func generalLambda(funcName string, funcParams string) string {
 		}
 		return ""
 	}
+	//parser result from AWS
 	s := string(result.Payload)
 	mapBody := make(map[string]interface{})
 	err2 := json.Unmarshal([]byte(s), &mapBody)
@@ -143,8 +161,11 @@ func generalLambda(funcName string, funcParams string) string {
 	return resp
 }
 
-//0 - blc
-//1 - bank
+/*
+Func to prepare data before update
+toUpload = 0 -> Blockchain
+toUpload = 1 -> Bank
+*/
 func prepareUpload(toUpload int) {
 	debug := false
 	if debug == false {

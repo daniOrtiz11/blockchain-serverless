@@ -1,3 +1,6 @@
+/*
+Func to check if the input addr exists in p2p network json
+*/
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
  
@@ -12,8 +15,8 @@ exports.handler = async (event) => {
       var bucket = "blcserverworkbucket";
       var file = "p2pstate.json";
       var getParams = {
-      Bucket: bucket, // your bucket name,
-      Key: file // path to the object you're looking for
+      Bucket: bucket, 
+      Key: file 
       };
       return await s3.getObject(getParams).promise()
       .then((res) => {

@@ -1,3 +1,6 @@
+/*
+Func to delete the input addr and their consecutives addrs into p2p network json
+*/
 var AWS = require('aws-sdk');
 var s3 = new AWS.S3();
 var needSet = false;
@@ -10,13 +13,12 @@ exports.handler = async (event) => {
       var bucket = "blcserverworkbucket";
       var file = "p2pstate.json";
       var getParams = {
-      Bucket: bucket, // your bucket name,
-      Key: file // path to the object you're looking for
+      Bucket: bucket, 
+      Key: file 
       };
       return await s3.getObject(getParams).promise()
       .then((res) => {
         var obj = JSON.parse(res.Body); 
-        //var needSet = false;
         if(obj.length > 0){
           deleteFromObject(key,obj);
         }
