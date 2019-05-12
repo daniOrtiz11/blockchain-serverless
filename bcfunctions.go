@@ -113,6 +113,7 @@ func updateBlc(chain []Block, Blockchain []Block) []Block {
 	if len(chain) > len(Blockchain) {
 		diflen := len(chain)
 		Blockchain = chain
+		logEntry(blockchainstr, "", 4)
 		updateBank(diflen, chain)
 	}
 	return Blockchain
@@ -138,6 +139,7 @@ func updateBank(newMovs int, chain []Block) {
 			}
 			if t.Amount == createAmountName {
 				Bank[indexSource].Name = t.TargetID
+				logEntry(Bank[indexSource].Name, "", 1)
 			} else if t.Amount == createAmountPriv {
 				Bank[indexSource].PrivateID = t.TargetID
 			} else {
@@ -165,7 +167,7 @@ func updateGlobal(bytestoUpload []byte, localfile string, bucketfile string) {
 /*
 Func to insert new valid block into Blockchain
 */
-func insertBlc(transaction Transaction, Blockchain []Block) []Block {
+func insertBlc(transaction Transaction, Blockchain []Block, action int) []Block {
 	newBlock := generateBlock(Blockchain[len(Blockchain)-1], transaction)
 	if isBlockValid(newBlock, Blockchain[len(Blockchain)-1]) {
 		mutex.Lock()

@@ -118,7 +118,7 @@ func generalMain() {
 	if targetP2P == "" {
 		fmt.Println(cmdInitialNode)
 		fmt.Println(cmdInitialNode2)
-
+		logEntry(blockchainstr, "", 3)
 		//Detect forced exit Ctrl + C
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)

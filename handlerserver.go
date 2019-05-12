@@ -212,6 +212,7 @@ func writeData(rw *bufio.ReadWriter) {
 			//sending blockchain to broadcast
 			rw.WriteString(fmt.Sprintf("%s\n", string(bytes)))
 			rw.Flush()
+			logEntry(blockchainstr, "", 3)
 			mutex.Unlock()
 
 		}
