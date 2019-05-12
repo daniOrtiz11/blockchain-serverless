@@ -2,18 +2,17 @@
 Func to get the next addr to be target in p2p network json
 */
 var AWS = require('aws-sdk');
-var util = require('util');
 // get reference to S3 client 
 var s3 = new AWS.S3();
  
 exports.handler = async (event) => {
     //console.log(event)
     var bucket = "blcserverworkbucket";
-    var file = "p2pstate.json"
+    var file = "p2pstate.json";
     var getParams = {
     Bucket: bucket, 
     Key: file 
-    }
+    };
     return await s3.getObject(getParams).promise()
     .then((res) => {
         var obj = JSON.parse(res.Body); 
