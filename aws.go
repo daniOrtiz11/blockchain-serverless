@@ -187,3 +187,11 @@ func prepareUpload(toUpload int) {
 		}
 	}
 }
+
+/*
+Func to restart log before initial node
+*/
+func restartLog() {
+	b := []byte("")
+	updateGlobal(b, localfilelog, bucketfilelog)
+}

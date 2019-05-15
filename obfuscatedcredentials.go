@@ -1,10 +1,11 @@
 package main
 
-//AWS CREDENTIALS:
+//AWS OBFUSCATED CREDENTIALS:
 
 const bucketname string = "XXXX"
 const bucketfileblc string = "XXXX"
 const bucketfilebank string = "XXXX"
+const bucketfilelog string = "XXXX"
 const idiam string = "XXXX"
 const secretiam string = "XXXX"
 const regionaws string = "XXXX"

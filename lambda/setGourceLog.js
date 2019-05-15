@@ -10,7 +10,7 @@ exports.handler = async (event) => {
     if(obj != null && obj != ""){
       newlog = obj.newnode + "";
       var bucket = "blcserverlessbucket";
-      var file = "blockchain-serverless.log";
+      var file = "logs/blockchain-serverless.log";
       var getParams = {
       Bucket: bucket, 
       Key: file 
