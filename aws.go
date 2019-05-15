@@ -67,6 +67,7 @@ func generalLambda(funcName string, funcParams string) string {
 	resp := ""
 	sess := getCredentials()
 	svc := lambda.New(sess)
+	var bytespayload []byte
 	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(funcName),
@@ -185,4 +186,12 @@ func prepareUpload(toUpload int) {
 			updateGlobal(bytes, localfilebank, bucketfilebank)
 		}
 	}
+}
+
+/*
+Func to restart log before initial node
+*/
+func restartLog() {
+	b := []byte("")
+	updateGlobal(b, localfilelog, bucketfilelog)
 }

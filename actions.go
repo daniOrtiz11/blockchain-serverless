@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -143,7 +144,8 @@ func insertBlock() {
 		t.SourceID = account.PublicID
 		t.TargetID = userTarget.PublicID
 		account.Amount = account.Amount - t.Amount
-		Blockchain = insertBlc(t, Blockchain)
+		Blockchain = insertBlc(t, Blockchain, 2)
+		logEntry(account.Name, userTarget.Name, 2)
 		//send to upload
 		prepareUpload(0)
 	} else {
@@ -161,11 +163,14 @@ func insertAccountBlock(newac Account) {
 	t.Amount = createAmountName
 	t.SourceID = newac.PublicID
 	t.TargetID = newac.Name
-	Blockchain = insertBlc(t, Blockchain)
+	Blockchain = insertBlc(t, Blockchain, 0)
+	logEntry(newac.Name, "", 0)
+	time.Sleep(1 * time.Second)
 	t.Amount = createAmountPriv
 	t.SourceID = newac.PublicID
 	t.TargetID = newac.PrivateID
-	Blockchain = insertBlc(t, Blockchain)
+	Blockchain = insertBlc(t, Blockchain, 1)
+	logEntry(newac.Name, "", 0)
 	prepareUpload(0)
 }
 

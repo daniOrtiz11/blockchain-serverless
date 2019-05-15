@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /*
@@ -16,6 +18,19 @@ func bytestofile(b []byte, localfile string) {
 	defer f.Close()
 	_, err2 := f.Write(b)
 	check(err2)
+}
+
+func addtofile(text string, localfile string) {
+	f, err := os.OpenFile(localfile, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		bytestofile([]byte(text), localfile)
+	} else {
+		defer f.Close()
+		if _, err = f.WriteString(text); err != nil {
+			bytestofile([]byte(text), localfile)
+		}
+	}
+
 }
 
 func check(e error) {
@@ -62,4 +77,40 @@ func showMenu2() {
 	fmt.Println(options4Title)
 	fmt.Println(closeOptionMenu)
 	fmt.Print("> ")
+}
+
+func logEntry(name1 string, name2 string, action int) {
+	t := time.Now()
+	time := t.Format("20060102150405")
+	localfolder := localP2P.Ipdir + ":" + localP2P.Port + "/"
+	newEntry := time + logDelimeter + localP2P.Ipdir + ":" + localP2P.Port + logDelimeter
+	//action = 0 -> create/write account
+	//action = 1 -> get account from blockchain
+	//action = 2 -> transaction
+	//action = 3 -> create/write in blockchain
+	//action = 4 -> udpate blockchain
+	switch action {
+	case 0:
+		newEntry = newEntry + "A" + logDelimeter + localfolder + folder1logs + name1 + logDelimeter + logColor
+	case 1:
+		newEntry = newEntry + "M" + logDelimeter + localfolder + folder1logs + name1 + logDelimeter + logColor
+	case 2:
+		newEntry = newEntry + "A" + logDelimeter + localfolder + folder1logs + name1 + logDelimeter + logColor
+		newEntry = newEntry + time + logDelimeter + localP2P.Ipdir + ":" + localP2P.Port + logDelimeter +
+			"A" + logDelimeter + localfolder + folder1logs + name2 + logDelimeter + logColor
+	case 3:
+		newEntry = newEntry + "A" + logDelimeter + name1 + logDelimeter + logColor
+	case 4:
+		newEntry = newEntry + "M" + logDelimeter + name1 + logDelimeter + logColor
+	}
+	setLog(newEntry)
+}
+
+func readTextFromFile(filename string) string {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Print(err)
+	}
+	str := string(b)
+	return str
 }
