@@ -67,6 +67,7 @@ func generalLambda(funcName string, funcParams string) string {
 	resp := ""
 	sess := getCredentials()
 	svc := lambda.New(sess)
+	var bytespayload []byte
 	bytespayload, err := json.Marshal(funcParams)
 	input := &lambda.InvokeInput{
 		FunctionName:   aws.String(funcName),

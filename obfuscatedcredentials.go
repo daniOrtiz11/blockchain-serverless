@@ -1,6 +1,6 @@
 package main
 
-//AWS CONSTANTS:
+//AWS CREDENTIALS:
 
 const bucketname string = "XXXX"
 const bucketfileblc string = "XXXX"
@@ -12,3 +12,5 @@ const arnFunGetaws string = "XXXX"
 const arnFuncGetP2P string = "XXXX"
 const arnFuncSetP2P string = "XXXX"
 const arnFuncDeleteP2P string = "XXXX"
+const arnFuncPingP2P string = "XXXX"
+const arnFuncLog string = "XXXX"

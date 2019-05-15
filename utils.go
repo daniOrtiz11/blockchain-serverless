@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -90,17 +91,26 @@ func logEntry(name1 string, name2 string, action int) {
 	//action = 4 -> udpate blockchain
 	switch action {
 	case 0:
-		newEntry = newEntry + "A" + logDelimeter + localfolder + folder1logs + name1 + "\n"
+		newEntry = newEntry + "A" + logDelimeter + localfolder + folder1logs + name1 + logDelimeter + logColor
 	case 1:
-		newEntry = newEntry + "M" + logDelimeter + localfolder + folder1logs + name1 + "\n"
+		newEntry = newEntry + "M" + logDelimeter + localfolder + folder1logs + name1 + logDelimeter + logColor
 	case 2:
-		newEntry = newEntry + "A" + logDelimeter + localfolder + folder1logs + name1 + "\n"
+		newEntry = newEntry + "A" + logDelimeter + localfolder + folder1logs + name1 + logDelimeter + logColor
 		newEntry = newEntry + time + logDelimeter + localP2P.Ipdir + ":" + localP2P.Port + logDelimeter +
-			"A" + logDelimeter + localfolder + folder1logs + name2 + "\n"
+			"A" + logDelimeter + localfolder + folder1logs + name2 + logDelimeter + logColor
 	case 3:
-		newEntry = newEntry + "A" + logDelimeter + name1 + "\n"
+		newEntry = newEntry + "A" + logDelimeter + name1 + logDelimeter + logColor
 	case 4:
-		newEntry = newEntry + "M" + logDelimeter + name1 + "\n"
+		newEntry = newEntry + "M" + logDelimeter + name1 + logDelimeter + logColor
 	}
-	addtofile(newEntry, localfilelog)
+	setLog(newEntry)
+}
+
+func readTextFromFile(filename string) string {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Print(err)
+	}
+	str := string(b)
+	return str
 }

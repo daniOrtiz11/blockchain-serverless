@@ -144,6 +144,20 @@ func setTargetP2P() {
 }
 
 /*
+Set log in AWS
+*/
+func setLog(newentry string) {
+	paramLog := newentry
+	paramLogAws := initParam + paramLog + "\"}"
+	resp := generalLambda(arnFuncLog, paramLogAws)
+	if resp == okC {
+		setLog(newentry)
+	} else if resp == koC {
+		log.Fatal(errorSetLog)
+	}
+}
+
+/*
 Delete addr in AWS
 */
 func deleteTargetP2P(needCheck bool) {
