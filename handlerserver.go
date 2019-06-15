@@ -53,9 +53,13 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		return nil, err
 	}
 
-	//Using localhost ip and provided port
-	addrstr := fmt.Sprintf(iplocalhost, listenPort)
-	//addrstr := fmt.Sprintf("/ip4/192.168.1.135/tcp/%d", listenPort)
+	//Using local ip and provided port
+	ipLocal, err := getExternalIP()
+	if err != nil {
+		fmt.Println(err)
+		closeCon()
+	}
+	addrstr := fmt.Sprintf(ipLocal, listenPort)
 
 	opts := []libp2p.Option{
 		libp2p.ListenAddrStrings(addrstr),
@@ -90,7 +94,13 @@ func makeBasicHost(listenPort int, randseed int64) (host.Host, error) {
 		if nextkey == tcp {
 			nextkey = s[6]
 		}
-		addrstr := fmt.Sprintf(iplocalhost, listenPort)
+		//Using local ip and provided port
+		ipLocal, err := getExternalIP()
+		if err != nil {
+			fmt.Println(err)
+			closeCon()
+		}
+		addrstr := fmt.Sprintf(ipLocal, listenPort)
 		realaddress := addrstr + ipfs2 + nextkey
 		//set node addr
 		parserLocalP2P(realaddress)
