@@ -32,7 +32,7 @@ func viewState(rw *bufio.ReadWriter) {
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
-		generalMain()
+		generalMain(true)
 	}
 }
 
@@ -53,7 +53,7 @@ func viewBank(rw *bufio.ReadWriter) {
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
-		generalMain()
+		generalMain(true)
 	}
 }
 
@@ -70,7 +70,7 @@ func viewAccountState(rw *bufio.ReadWriter) {
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
-		generalMain()
+		generalMain(true)
 	}
 }
 
@@ -151,7 +151,7 @@ func insertBlock() {
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
-		generalMain()
+		generalMain(true)
 	}
 }
 
@@ -206,7 +206,7 @@ func login(rw *bufio.ReadWriter) {
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
-		generalMain()
+		generalMain(true)
 	}
 }
 
@@ -245,7 +245,7 @@ func createAccount(rw *bufio.ReadWriter) {
 	} else {
 		fmt.Println(koPingP2P)
 		fmt.Println(reconnectingP2P)
-		generalMain()
+		generalMain(true)
 	}
 }
 

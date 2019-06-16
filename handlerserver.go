@@ -32,7 +32,7 @@ func handleStream(s net.Stream) {
 	rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
 	// Create a thread to read and write.
-	go writeData(rw)
+	go writeData(rw, false)
 	go readData(rw)
 
 }
@@ -211,7 +211,11 @@ func readData(rw *bufio.ReadWriter) {
 /*
 Func to write in rw
 */
-func writeData(rw *bufio.ReadWriter) {
+func writeData(rw *bufio.ReadWriter, reconnecting bool) {
+
+	if reconnecting == true {
+		threadActive = false
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
