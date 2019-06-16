@@ -98,13 +98,13 @@ func main() {
 		*listenF = defaultPort
 		fmt.Println(defaultPortStr)
 	}
-	generalMain()
+	generalMain(false)
 }
 
 /*
 Main Function
 */
-func generalMain() {
+func generalMain(reconnected bool) {
 	logged = false
 
 	//get dir target to connect
@@ -190,7 +190,7 @@ func generalMain() {
 		rw := bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
 
 		// Create a thread to read and write.
-		go writeData(rw)
+		go writeData(rw, reconnected)
 		go readData(rw)
 
 		select {} // hang forever
