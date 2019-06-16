@@ -102,8 +102,8 @@ func insertBlock() {
 			sendData = strings.Replace(sendData, "\n", "", -1)
 			//check if is a number
 			amount, err := strconv.Atoi(sendData)
-			if err == nil {
-				if amount < account.Amount {
+			if err == nil && amount > 0 {
+				if amount <= account.Amount {
 					enabledAmount = true
 					realAmount = amount
 				} else {

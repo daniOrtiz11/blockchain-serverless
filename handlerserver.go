@@ -21,6 +21,8 @@ import (
 	libp2p "github.com/libp2p/go-libp2p"
 )
 
+var threadActive = false
+
 /*
 Handle streaming
 */
@@ -242,11 +244,14 @@ func writeData(rw *bufio.ReadWriter) {
 		}
 	}()
 
-	//go to first menu
-	for {
-		inOk := false
-		for inOk == false {
-			inOk = mainActions(rw)
+	if threadActive == false {
+		threadActive = true
+		//go to first menu
+		for {
+			inOk := false
+			for inOk == false {
+				inOk = mainActions(rw)
+			}
 		}
 	}
 }
