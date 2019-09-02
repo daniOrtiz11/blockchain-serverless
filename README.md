@@ -7,6 +7,9 @@ Daniel Ortiz Sánchez
 ## Supervisor 
 José Luis Vázquez Poletti
 ## Introduction
+
+![](./layout.png)
+
 The objective of this project is to develop a blockchain solution by externalising part of its processing to a cloud services platform.
 
 The final solution consists in the development of a digital bank whose support is an own network blockchain. Users will be able to connect to this network through a client and interact with their bank account. Within the client, users will be able to check the status of their account, the rest of existing accounts in the bank and make transfers to any of them by making a transaction through the blockchain.
