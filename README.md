@@ -8,7 +8,7 @@ Daniel Ortiz Sánchez
 José Luis Vázquez Poletti
 ## Introduction
 
-![](./layout.png)
+![](./resize_layout.png)
 
 The objective of this project is to develop a blockchain solution by externalising part of its processing to a cloud services platform.
 
